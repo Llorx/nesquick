@@ -171,65 +171,68 @@ export namespace VeactState {
     export type ReturnReturnType<T> = T extends (...args:any) => infer R ? ReturnReturnType<R> : T;
 
     export function stateNoOptions<T>(st:T) { // To avoid some branching
-        if (st && typeof st === "object" && !(st as any)[IS_PROXY]) {
-            let r = map.get(st);
-            if (r) {
-                st = r;
-            } else {
-                let proxified:Map<string|number|Symbol, Prop> = new Map();
-                let obj = st;
-                st = new Proxy(st as Object, {
-                    get: (target, prop) => {
-                        if (prop === IS_PROXY) {
-                            return true;
-                        } else if (prop === GET_VALUE) {
-                            return obj;
-                        } else {
+        if (st && typeof st === "object") {
+            let proto = Object.getPrototypeOf(st);
+            if ((proto === Object.prototype || proto === Array.prototype || proto === null) && !(st as any)[IS_PROXY]) {
+                let r = map.get(st);
+                if (r) {
+                    st = r;
+                } else {
+                    let proxified:Map<string|number|Symbol, Prop> = new Map();
+                    let obj = st;
+                    st = new Proxy(st as Object, {
+                        get: (target, prop) => {
+                            if (prop === IS_PROXY) {
+                                return true;
+                            } else if (prop === GET_VALUE) {
+                                return obj;
+                            } else {
+                                let p = proxified.get(prop);
+                                if (!p) {
+                                    let v = (target as any)[prop];
+                                    proxified.set(prop, p = {
+                                        proxified: proxified,
+                                        value: stateNoOptions(v),
+                                        realValue: value(v),
+                                        dirty: false,
+                                        cbs: new Set(),
+                                        prop: prop
+                                    });
+                                } else if (p.dirty) {
+                                    p.dirty = false;
+                                    p.value = stateNoOptions(p.value);
+                                }
+                                if (runningSub && !runningSub.oldProps.delete(p)) {
+                                    p.cbs.add(runningSub);
+                                    runningSub.props.add(p);
+                                }
+                                return p.value;
+                            }
+                        },
+                        set: (target, prop, v) => {
                             let p = proxified.get(prop);
-                            if (!p) {
-                                let v = (target as any)[prop];
-                                proxified.set(prop, p = {
-                                    proxified: proxified,
-                                    value: stateNoOptions(v),
-                                    realValue: value(v),
-                                    dirty: false,
-                                    cbs: new Set(),
-                                    prop: prop
-                                });
-                            } else if (p.dirty) {
-                                p.dirty = false;
-                                p.value = stateNoOptions(p.value);
-                            }
-                            if (runningSub && !runningSub.oldProps.delete(p)) {
-                                p.cbs.add(runningSub);
-                                runningSub.props.add(p);
-                            }
-                            return p.value;
-                        }
-                    },
-                    set: (target, prop, v) => {
-                        let p = proxified.get(prop);
-                        if (p) {
-                            let isProxy = v && v[IS_PROXY];
-                            let realValue = isProxy ? v[GET_VALUE] : v;
-                            if (p.realValue !== realValue) {
-                                (target as any)[prop] = realValue;
-                                p.realValue = realValue;
-                                p.value = v;
-                                if (!isProxy) {
-                                    p.dirty = true;
+                            if (p) {
+                                let isProxy = v && v[IS_PROXY];
+                                let realValue = isProxy ? v[GET_VALUE] : v;
+                                if (p.realValue !== realValue) {
+                                    (target as any)[prop] = realValue;
+                                    p.realValue = realValue;
+                                    p.value = v;
+                                    if (!isProxy) {
+                                        p.dirty = true;
+                                    }
+                                    for (let sub of p.cbs) {
+                                        renderSub(sub);
+                                    }
                                 }
-                                for (let sub of p.cbs) {
-                                    renderSub(sub);
-                                }
+                            } else {
+                                (target as any)[prop] = v;
                             }
-                        } else {
-                            (target as any)[prop] = v;
+                            return true;
                         }
-                        return true;
-                    }
-                }) as T;
-                map.set(obj, st);
+                    }) as T;
+                    map.set(obj, st);
+                }
             }
         }
         return st;
