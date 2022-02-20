@@ -59,7 +59,7 @@ declare namespace Veact {
     interface DynamicOptionsProps<T extends Props, TReturn extends Props> extends DynamicOptions<T> {
         props: (props: T) => TReturn;
     }
-    type N3Constructor<T = any> = new (props: T extends Props ? T : never, children: Children, type?: keyof JSX.IntrinsicElements) => T extends Props ? VeactElement<T> : VeactElement;
+    type VeactElementConstructor<T = any> = new (props: T extends Props ? T : never, children: Children, type?: keyof JSX.IntrinsicElements) => T extends Props ? VeactElement<T> : VeactElement;
     export type Sub<T> = T extends {
         [key: string]: any;
     } ? T extends Array<any> ? T | (() => T) : {
@@ -75,12 +75,12 @@ declare namespace Veact {
     export function createElement<T extends Props>(type: new (props: T, children: Children) => VeactElement<T>, props?: T, ...children: Children): VeactElement<T>;
     export function createElement<T extends Props>(type: (props: T) => VeactElement<any>, props?: T, ...children: Children): VeactElement<T>;
     export class VeactElement<P extends Props = {}> {
-        readonly props: P | undefined;
+        readonly props?: P | undefined;
         protected readonly children: Children;
         protected readonly type?: keyof JSX.IntrinsicElements | undefined;
-        static for<T extends Props | boolean>(this: N3Constructor<T>, callback: () => T | T[]): (typeof this$1)[];
-        static for<T extends Props | boolean>(this: N3Constructor<T>, callback: () => T | T[], options: T extends Props ? DynamicOptions<T> : undefined): (typeof this$1)[];
-        static for<T extends Props, TReturn extends Props>(this: N3Constructor<TReturn>, callback: () => T | T[], options: DynamicOptionsProps<T, TReturn>): (typeof this$1)[];
+        static for<T extends Props | boolean>(this: VeactElementConstructor<T>, callback: () => T | T[]): VeactElementConstructor<T>[];
+        static for<T extends Props | boolean>(this: VeactElementConstructor<T>, callback: () => T | T[], options: T extends Props ? DynamicOptions<T> : undefined): VeactElementConstructor<T>[];
+        static for<T extends Props, TReturn extends Props>(this: VeactElementConstructor<TReturn>, callback: () => T | T[], options: DynamicOptionsProps<T, TReturn>): VeactElementConstructor<T>[];
         private subs;
         private displaySub;
         private childrenElements;
@@ -93,7 +93,7 @@ declare namespace Veact {
         state: {
             [key: string]: any;
         } | null;
-        constructor(props: P | undefined, children?: Children, type?: keyof JSX.IntrinsicElements | undefined);
+        constructor(props?: P | undefined, children?: Children, type?: keyof JSX.IntrinsicElements | undefined);
         protected draw(callback: () => void): void;
         private drawDisplay;
         onRemove(): void;

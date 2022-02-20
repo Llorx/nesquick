@@ -11,10 +11,10 @@ export namespace Veact {
     interface DynamicOptionsProps<T extends Props, TReturn extends Props> extends DynamicOptions<T> {
         props:(props:T) => TReturn;
     }
-    type N3Constructor<T = any> = new(props:T extends Props ? T : never, children:Children, type?:keyof JSX.IntrinsicElements) => T extends Props ? VeactElement<T> : VeactElement;
+    type VeactElementConstructor<T = any> = new(props:T extends Props ? T : never, children:Children, type?:keyof JSX.IntrinsicElements) => T extends Props ? VeactElement<T> : VeactElement;
     type DynamicElement = {data:any, i:number|null, element:VeactElement<any>};
-    type Dynamic = {constructor:N3Constructor, callback:() => any|any[], options:DynamicOptionsProps<any, Props>|DynamicOptions<any>, children:DynamicElement[], keys:Map<any, DynamicElement>|null};
-    const dynamic:WeakMap<N3Constructor[], Dynamic> = new WeakMap();
+    type Dynamic = {constructor:VeactElementConstructor, callback:() => any|any[], options:DynamicOptionsProps<any, Props>|DynamicOptions<any>, children:DynamicElement[], keys:Map<any, DynamicElement>|null};
+    const dynamic:WeakMap<VeactElementConstructor[], Dynamic> = new WeakMap();
     export type Sub<T> = T extends {[key:string]:any} ? T extends Array<any> ? T|(() => T) : {[K in keyof T]:T[K]|(() => T[K])} : T|(() => T);
     export type SubAll<T> = T extends {[key:string]:any} ? {[K in keyof T]:SubAll<T[K]>} : T|(() => T);
     export type Children = (string|Node|VeactElement|(() => string|Props|Props[]))[];
@@ -34,11 +34,11 @@ export namespace Veact {
     }
     
     export class VeactElement<P extends Props = {}> {
-        static for<T extends Props|boolean>(this:N3Constructor<T>, callback:() => T|T[]):(typeof this)[];
-        static for<T extends Props|boolean>(this:N3Constructor<T>, callback:() => T|T[], options:T extends Props ? DynamicOptions<T> : undefined):(typeof this)[];
-        static for<T extends Props, TReturn extends Props>(this:N3Constructor<TReturn>, callback:() => T|T[], options:DynamicOptionsProps<T, TReturn>):(typeof this)[];
-        static for<T extends Props, TReturn extends Props>(this:N3Constructor<TReturn>, callback:() => T|T[], options?:DynamicOptionsProps<T, TReturn>) {
-            let list:(typeof this)[] = [];
+        static for<T extends Props|boolean>(this:VeactElementConstructor<T>, callback:() => T|T[]):VeactElementConstructor<T>[];
+        static for<T extends Props|boolean>(this:VeactElementConstructor<T>, callback:() => T|T[], options:T extends Props ? DynamicOptions<T> : undefined):VeactElementConstructor<T>[];
+        static for<T extends Props, TReturn extends Props>(this:VeactElementConstructor<TReturn>, callback:() => T|T[], options:DynamicOptionsProps<T, TReturn>):VeactElementConstructor<T>[];
+        static for<T extends Props, TReturn extends Props>(this:VeactElementConstructor<TReturn>, callback:() => T|T[], options?:DynamicOptionsProps<T, TReturn>) {
+            let list:VeactElementConstructor<TReturn>[] = [];
             dynamic.set(list, {
                 constructor: this,
                 callback: callback,
@@ -58,7 +58,7 @@ export namespace Veact {
         private _content:Element|null = null;
         private onremove:VeactElement[]|null = null;
         state:{[key:string]:any}|null = null;
-        constructor(readonly props:P|undefined, protected readonly children:Children = [], protected readonly type?:keyof JSX.IntrinsicElements) {}
+        constructor(readonly props?:P, protected readonly children:Children = [], protected readonly type?:keyof JSX.IntrinsicElements) {}
         protected draw(callback:() => void) {
             let sub = VeactState.render(callback);
             this.subs.add(sub);
@@ -435,7 +435,7 @@ declare global {
         type JSXElements = {[K in keyof HTMLElementTagNameMap]:HTMLProps<HTMLElementTagNameMap[K]>}&{[K in keyof SVGElementTagNameMap]:SVGProps<SVGElementTagNameMap[K]>};
 
         type Element = Veact.VeactElement;
-        //type ElementClass = DOM.N3SElement;
+        //type ElementClass = Veact.VeactElement;
         interface IntrinsicElements extends JSXElements {
             // TODO: fragment
         }
