@@ -8,10 +8,8 @@
         "strictBindCallApply": true,
         "strictNullChecks": true,
         "outDir": "./lib",
-        "jsx": "react",
         "strict": true,
         "esModuleInterop": false,
-        "reactNamespace": "Veact",
         "lib": ["DOM", "ESNext"]
     },
     "exclude": [
