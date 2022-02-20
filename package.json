@@ -1,0 +1,25 @@
+{
+  "name": "veact",
+  "version": "0.0.1",
+  "description": "React-mobx-like DOM framework with focus on drawing performance",
+  "scripts": {
+    "watch": "node cleanlib.js && npx tsc --watch --inlineSourcemap",
+    "build": "node cleanlib.js && npx rollup -c"
+  },
+  "types": "./types/index.d.ts",
+  "browser": "./lib/Veact.browser.js",
+  "main": "./lib/Veact",
+  "exports": {
+    "import": "./lib/Veact.mjs",
+    "require": "./lib/Veact.js"
+  },
+  "author": "Llorx",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^8.3.0",
+    "rollup": "^2.67.3",
+    "rollup-plugin-dts": "^4.1.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "typescript": "^4.4.4"
+  }
+}

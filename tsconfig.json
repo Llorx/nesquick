@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "ESNext",
+        "target": "ESNext",
+        "removeComments": true,
+        "noImplicitThis": true,
+        "strictBindCallApply": true,
+        "strictNullChecks": true,
+        "outDir": "./lib",
+        "jsx": "react",
+        "strict": true,
+        "esModuleInterop": false,
+        "reactNamespace": "Veact",
+        "lib": ["DOM", "ESNext"]
+    },
+    "exclude": [
+        "./lib"
+    ],
+    "include": [
+        "./src/index.ts"
+    ]
+}
