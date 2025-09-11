@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "declaration": true,
+        "lib": ["ESNext"],
+        "declarationDir": "./lib/types",
+        "outDir": "./lib",
+        "jsx": "react",
+        "jsxFactory": "ok"
+    },
+    "include": [
+        "src/index.ts"
+    ]
+}

@@ -1,10 +1,10 @@
-import { Child, Props, VeactElement } from "./VeactElement";
+import { VeactElement } from "./VeactElement";
 
-namespace Veact {
-    export function createElement(type:string, props?:Props|null, ...children:Child[]) {
-        return new VeactElement(type, props || null, children);
-    }
-    export function render(element:VeactElement, parent?:HTMLElement|null) {
+//export * from "./useComponent";
+export * from "./For";
+
+export namespace Veact {
+    export function render(element:VeactElement<any>, parent?:HTMLElement|null) {
         if (parent != null) {
             parent.appendChild(element.render(parent.ownerDocument));
         } else {

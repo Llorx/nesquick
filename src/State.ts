@@ -10,13 +10,13 @@ export type Subscription<T> = {
     pending:boolean;
 };
 
-let currentReactor:Subscription<any>|null = null;
+let currentReactor:Subscription<any>[] = [];
 namespace reactor {
     export function set(reactor:Subscription<any>) {
-        currentReactor = reactor;
+        currentReactor.push(reactor);
     }
     export function reset() {
-        currentReactor = null;
+        currentReactor.pop();
     }
 }
 let pendingReactor:{
@@ -56,9 +56,10 @@ function renderReactors() {
 export function useState<T>(value:T):State<T> {
     const reactors = new Set<Subscription<T>>();
     const getValue = () => {
-        if (currentReactor) {
-            reactors.add(currentReactor);
-            currentReactor.states.set(reactors, currentReactor.iteration);
+        const reactor = currentReactor[currentReactor.length - 1];
+        if (reactor) {
+            reactors.add(reactor);
+            reactor.states.set(reactors, reactor.iteration);
         }
         return value;
     };
@@ -104,6 +105,7 @@ function runSubscription<T>(sub:Subscription<T>) {
     sub.pending = false;
     reactor.set(sub);
     const res = sub.cb();
+    reactor.reset();
     for (const [state, iteration] of sub.states) {
         if (iteration !== sub.iteration) {
             sub.states.delete(state);

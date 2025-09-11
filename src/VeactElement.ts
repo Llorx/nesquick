@@ -1,107 +1,173 @@
+import { JSX } from "./jsx-runtime";
 import { cancelSubscription, Subscription, useRender } from "./State";
 
-export type Child = VeactElement|string|null|void|ChildFunc;
-export type ChildFunc = () => Exclude<Child, ChildFunc>;
-export type Prop = string|number|boolean|null|undefined|PropFunc;
-export type PropFunc = () => Exclude<Prop, PropFunc>;
-export type Props = Record<string, Prop>;
-export type PropsFunc = Record<string, PropFunc>;
+export type Child = VeactElement<any>|VeactFragment|string|boolean|number|null|undefined|ChildFunc;
+export type Children = Child|Child[];
+export type ChildFunc = () => Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[];
+export type Props = Record<string, any> & JSX.IntrinsicAttributes;
+
+export type FunctionComponent<P extends Props = {}> = (props:P) => VeactElement<P>;
 
 type VeactChild = {
     node:Node|null;
-    element:null;
+} & ({
+    element:VeactElement|null;
+    fragment:null;
 } | {
-    node:Node|null;
-    element:VeactElement;
-};
-type PropFuncTransform<T extends Prop> = T extends ()=>void ? T : () => T;
-type PropsFuncTransform<T extends Props> = {[K in keyof T]:PropFuncTransform<T[K]>};
+    element:null;
+    fragment:VeactFragment|null;
+});
 
-function propsFunc<T extends Props>(props:T) {
-    for (const k in props) {
-        if (typeof props[k] !== "function") {
-            const v = props[k];
-            props[k] = (() => v) as any; // TODO: "as any". Think about it.
-        }
-    }
-    return props as PropsFuncTransform<T>;
+export type VeactParent = {
+    appendChild(child:Node):void;
+    replaceChild(newChild:Node, oldChild:Node):void;
+    insertBefore(node:Node, child:Node|null):void;
 }
 
-// VeactElement puede recibir un render
-// Si recibe un render externo, entonces usa ese render pasándole los props en el argumento del render
-// Esos props tienen que ser de tipo PropsFunc siempre (a ver cómo lo hago, posiblemente un genérico que en el arg se aplica la transformación del genérico)
-
-export class VeactElement {
+export class VeactElement<P extends Props = {}> {
     private _subscriptions:Subscription<any>[] = [];
-    private _children:VeactChild[] = [];
-    constructor(readonly type:string, readonly props:Props|null, readonly children:Child[]) {}
-    render(document:Document) {
-        const element = document.createElement(this.type);
+    protected _children:VeactChild[] = [];
+    constructor(private _render:string|FunctionComponent<P>, protected props:P, readonly key?:string) {
+        this.props = props;
+    }
+    render(document:Document):Node {
+        if (typeof this._render === "function") {
+            return this._render(this.props).render(document);
+        }
+        const element = document.createElement(this._render);
         if (this.props != null) {
             this._renderProps(element, this.props);
         }
-        this._renderChildren(document, element, this.children);
+        this._renderChildren(document, element, this.props.children);
+        this.props = {} as P; // GC unused properties
         return element;
     }
     private _renderProps(element:HTMLElement, props:Props) {
         for (const k in props) {
-            if (typeof props[k] === "function") {
-                const sub = useRender(props[k], v => {
-                    element.setAttribute(k, String(v));
-                });
-                if (sub) {
-                    this._subscriptions.push(sub);
+            if (k !== "children") {
+                if (typeof props[k] === "function") {
+                    const sub = useRender(props[k], v => {
+                        element.setAttribute(k, String(v));
+                    });
+                    if (sub) {
+                        this._subscriptions.push(sub);
+                    }
+                } else {
+                    element.setAttribute(k, String(props[k]));
                 }
-            } else {
-                element.setAttribute(k, String(props[k]));
             }
         }
     }
-    private _renderChildren(document:Document, parent:HTMLElement, children:Child[]) {
-        for (const child of children) {
-            if (child instanceof VeactElement) {
-                this._renderChild(document, parent, this._newChild(), child);
-            } else if (typeof child === "function") {
-                const veactChild = this._newChild();
-                const sub = useRender(child, child => {
-                    this._renderChild(document, parent, veactChild, child);
-                });
-                if (sub) {
-                    this._subscriptions.push(sub);
+    protected _renderChildren(document:Document, parent:VeactParent, children?:Children) {
+        if (children != null) {
+            if (!Array.isArray(children)) {
+                children = [children];
+            }
+            for (const child of children) {
+                if (child instanceof VeactElement) {
+                    this._renderChild(document, parent, this._pushChild(), child);
+                } else if (typeof child === "function") {
+                    const ch = this._pushChild();
+                    const sub = useRender(child, children => {
+                        this._renderChild(document, parent, ch, children);
+                    });
+                    if (sub) {
+                        this._subscriptions.push(sub);
+                    }
+                } else {
+                    this._renderChild(document, parent, this._pushChild(), child);
                 }
-            } else {
-                this._renderChild(document, parent, this._newChild(), child);
             }
         }
     }
-    private _newChild() {
+    protected _pushChild():VeactChild {
         const veactChild:VeactChild = {
             node: null,
-            element: null
+            element: null,
+            fragment: null
         };
         this._children.push(veactChild);
         return veactChild;
     }
-    private _renderChild(document:Document, parent:HTMLElement, veactChild:VeactChild, child:Exclude<Child, ChildFunc>) {
-        const sibling = veactChild.node ? veactChild.node.nextSibling : null;
-        if (veactChild.element) {
-            veactChild.element.dispose();
-            parent.removeChild(veactChild.node!);
-            veactChild.element = null!;
-            veactChild.node = null;
-        }
-        if (child instanceof VeactElement) {
-            if (veactChild.node) {
-                parent.removeChild(veactChild.node!);
+    protected _spliceChild(i:number):VeactChild {
+        const veactChild:VeactChild = {
+            node: null,
+            element: null,
+            fragment: null
+        };
+        this._children.splice(i, 0, veactChild);
+        return veactChild;
+    }
+    protected _swapChilds(parent:VeactParent, i1:number, i2:number) {
+        const ch1 = this._children[i1];
+        const ch2 = this._children[i2];
+        if (ch1 && ch2) {
+            this._children[i1] = ch2;
+            this._children[i2] = ch1;
+            if (ch1.node && ch2.node) {
+                const node2Sibling = ch2.node.nextSibling;
+                if (node2Sibling === ch1.node) {
+                    parent.insertBefore(ch1.node, ch2.node);
+                } else {
+                    parent.insertBefore(ch2.node, ch1.node);
+                    parent.insertBefore(ch1.node, node2Sibling);
+                }
             }
+        }
+    }
+    protected _removeChild(i:number) {
+        const ch = this._children[i];
+        if (ch) {
+            this._children.splice(i, 1);
+            if (ch.node) {
+                ch.node.parentNode?.removeChild(ch.node);
+            }
+            if (ch.element != null) {
+                ch.element.dispose();
+            } else if (ch.fragment != null) {
+                ch.fragment.dispose();
+            }
+        }
+    }
+    protected _renderChild(document:Document, parent:VeactParent, veactChild:VeactChild, child:Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[]) {
+        if (veactChild.element != null) {
+            veactChild.element.dispose();
+        } else if (veactChild.fragment != null) {
+            veactChild.fragment.clear();
+        }
+        if (child instanceof VeactFragment || Array.isArray(child)) {
+            veactChild.element = null;
+            veactChild.fragment = Array.isArray(child) ? new VeactFragment(child) : child;
+            const node = veactChild.fragment.render(document);
+            const lastChild = node.lastChild;
+            if (veactChild.node) {
+                parent.replaceChild(node, veactChild.node);
+            } else {
+                parent.appendChild(node);
+            }
+            veactChild.node = lastChild;
+        } else if (child instanceof VeactElement) {
             veactChild.element = child;
-            veactChild.node = child.render(document);
-            parent.insertBefore(veactChild.node, sibling);
+            veactChild.fragment = null;
+            const node = child.render(document);
+            if (veactChild.node) {
+                parent.replaceChild(node, veactChild.node);
+            } else {
+                parent.appendChild(node);
+            }
+            veactChild.node = node;
         } else {
             const value = child == null ? "" : String(child);
-            if (!veactChild.node) {
-                veactChild.node = document.createTextNode(value);
-                parent.insertBefore(veactChild.node, sibling);
+            if (veactChild.node == null || veactChild.element != null || veactChild.fragment != null) {
+                veactChild.element = null;
+                veactChild.fragment = null;
+                const node = document.createTextNode(value);
+                if (veactChild.node) {
+                    parent.replaceChild(node, veactChild.node);
+                } else {
+                    parent.appendChild(node);
+                }
+                veactChild.node = node;
             } else {
                 veactChild.node.textContent = value;
             }
@@ -118,3 +184,6 @@ export class VeactElement {
         }
     }
 }
+
+// Cyclic dependency fix
+import { VeactFragment } from "./VeactFragment";

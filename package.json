@@ -2,8 +2,14 @@
   "name": "veact",
   "version": "0.0.1",
   "description": "React-like library with focus on drawing performance",
-  "main": "lib/",
-  "types": "lib/types",
+  "types": "./lib/types",
+  "main": "./lib",
+  "typesVersions": {
+    "*": {
+      "jsx-runtime": ["./lib/types/jsx-runtime.d.ts"]
+    }
+  },
+  "sideEffects": false,
   "files": [
     "lib/",
     "LICENSE"

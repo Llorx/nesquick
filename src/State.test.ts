@@ -297,4 +297,87 @@ test.describe("State", (test, after) => {
             }
         }
     });
+    test("should subscribe to a state inside a reactor", {
+        ARRANGE() {
+            const [getCounter1] = State.useState(0);
+            const [getCounter2, setCounter2] = State.useState(0);
+            let s:ReturnType<typeof newRenderSub>|null;
+            const sub1 = newRenderSub(() => {
+                const c = getCounter1();
+                s = newRenderSub(getCounter2);
+                return c;
+            });
+            let sub2 = s!;
+            return { sub1, sub2, setCounter2 };
+        },
+        async ACT({ setCounter2 }) {
+            setCounter2(1);
+            await waitRenderTick();
+        },
+        ASSERTS: {
+            "first subscription should keep the default counter"(_, { sub1 }) {
+                sub1.assert(0);
+            },
+            "second subscription should get the new counter"(_, { sub2 }) {
+                sub2.assert(1);
+            }
+        }
+    });
+    test("should not run first callback when nested one is updated", {
+        ARRANGE() {
+            const [getCounter1] = State.useState(0);
+            const [getCounter2, setCounter2] = State.useState(0);
+            let s:ReturnType<typeof newRenderSub>|null;
+            let extraValue = 0;
+            const sub1 = newRenderSub(() => {
+                const c = getCounter1();
+                s = newRenderSub(() => getCounter2() + extraValue);
+                return c + extraValue;
+            });
+            let sub2 = s!;
+            extraValue = 100; // if run again, will get this value
+            return { sub1, sub2, setCounter2 };
+        },
+        async ACT({ setCounter2 }) {
+            setCounter2(1);
+            await waitRenderTick();
+        },
+        ASSERTS: {
+            "first subscription should keep the default counter"(_, { sub1 }) {
+                sub1.assert(0);
+            },
+            "second subscription should get the new counter"(_, { sub2 }) {
+                sub2.assert(101);
+            }
+        }
+    });
+    test("should recover previous subscription after running nested one", {
+        ARRANGE() {
+            const [getCounter1, setCounter1] = State.useState(0);
+            const [alwaysEnabled] = State.useState(0);
+            const [getCounter2] = State.useState(0);
+            let s:ReturnType<typeof newRenderSub>|null;
+            let extraValue = 0;
+            const sub1 = newRenderSub(() => {
+                alwaysEnabled(); // keep the subscription alive with an always existant state
+                s = newRenderSub(() => getCounter2() + extraValue);
+                return getCounter1() + extraValue; // getCounter1 after nested subscription. Should not subscribe to nested
+            });
+            let sub2 = s!;
+            extraValue = 100; // if run again, will get this value
+            return { sub1, sub2, setCounter1 };
+        },
+        async ACT({ setCounter1 }) {
+            setCounter1(1);
+            await waitRenderTick();
+        },
+        ASSERTS: {
+            "first subscription should get the new counter"(_, { sub1 }) {
+                sub1.assert(101);
+            },
+            "second subscription should have the default counter"(_, { sub2 }) {
+                sub2.assert(0);
+            }
+        }
+    });
 });

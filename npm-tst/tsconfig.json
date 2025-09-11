@@ -12,12 +12,12 @@
         "declaration": true,
         "declarationDir": "./lib/types",
         "inlineSourceMap": true,
-        "outDir": "./lib"
+        "outDir": "./lib",
+        "jsx": "react-jsx",
+        "jsxImportSource": "veact"
     },
     "include": [
         "./src",
-        "./src/jsx-runtime.ts",
-        "./src/cli/veact-tsc.ts",
         "./src/**/*.test.ts"
     ]
 }
