@@ -12,16 +12,16 @@ export const jsx = jsxs;
 
 type OmitKey<T> = Omit<T, "key">;
 declare const WrappedFunctionType:unique symbol;
-type WrappedFunction<T> = (() => T) & {readonly [WrappedFunctionType]?:T};
+type WrappedFunction<T> = T extends undefined ? T : ((() => T) & {readonly [WrappedFunctionType]?:T});
 type UserProp<T> = T extends (...args:infer A)=>infer R ? (((...args:A)=>R)|T) : WrappedFunction<T>;
 type ComponentProp<T> = T extends {readonly [WrappedFunctionType]?:infer R} ? (T|R) : T extends (...args: any[]) => any ? T : (T|(() => T));
 type UnFunction<T> = T extends {readonly [WrappedFunctionType]?:infer R} ? (T|R) : T;
-type UserProps<T> = {
+type UserProps<T> = T extends any ? {
     [K in keyof OmitKey<T>]:K extends "children" ? T[K] : UserProp<T[K]>;
-};
-type ComponentProps<T> = keyof OmitKey<T> extends never ? {} : {
+} : never;
+type ComponentProps<T> = T extends any ? keyof OmitKey<T> extends never ? {} : {
     [K in keyof OmitKey<T>]:K extends "children" ? UnFunction<T[K]> : ComponentProp<T[K]>;
-};
+} : never;
 export type Generic<T> = T extends (...args:any)=>infer R ? R : T;
 export { UserProps as Props };
 export type Component<P = {}> = (props:UserProps<P>) => JSX.Element;

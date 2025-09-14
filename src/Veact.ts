@@ -1,7 +1,7 @@
 import { VeactElement } from "./VeactElement";
 
 //export * from "./useComponent";
-export * from "./For";
+export * from "./For/For";
 
 export namespace Veact {
     export function render(element:VeactElement<any>, parent?:HTMLElement|null) {
