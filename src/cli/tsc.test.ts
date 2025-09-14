@@ -4,7 +4,7 @@ import * as Path from "path";
 import test, { monad } from "arrange-act-assert";
 
 import { tsc } from "./tsc";
-import { transformer } from "../transformer";
+import { transformer } from "./transformer";
 
 test.describe("tsc", test => {
     function clearPath(path:string) {

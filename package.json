@@ -1,6 +1,6 @@
 {
   "name": "veact",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "React-like library with focus on drawing performance",
   "types": "./lib/types",
   "main": "./lib",
@@ -8,6 +8,10 @@
     "*": {
       "jsx-runtime": ["./lib/types/jsx-runtime.d.ts"]
     }
+  },
+  "bin": {
+    "veact-tsc": "lib/cli/veact-tsc.js",
+    "vtsc": "lib/cli/veact-tsc.js"
   },
   "sideEffects": false,
   "files": [

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { tsc } from "./tsc";
 import { transformer } from "./transformer";
 
