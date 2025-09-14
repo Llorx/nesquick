@@ -1,0 +1,15 @@
+ÿo"	validatedT"data"œ"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.component = component;
+function ok() {
+    return 123;
+}
+var pepe = {
+    a: function () { return 123; }
+};
+function component() {
+    return ok("div", { asd: 123, asd2: ok, asd3: ok, asd4: function () { return pepe.a; }, asd5: function () { return pepe.a(); }, asd6: function () { return 123; }, asd7: 1 + 2, asd8: 1 === 1 ? 2 : 3, asd9: function () { return 1 === 1 ? 2 : ok; }, asd10: function () { return 1 + ok(); } },
+        "asd",
+        123);
+}
+{

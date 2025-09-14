@@ -24,6 +24,14 @@ export type VeactParent = {
     insertBefore(node:Node, child:Node|null):void;
 }
 
+function functionizeProps(props:Record<string, any>) {
+    for (const k in props) {
+        if (typeof props[k] !== "function") {
+            const v = props[k];
+            props[k] = () => v;
+        }
+    }
+}
 export class VeactElement<P extends Props = {}> {
     private _subscriptions = new Subscriptions();
     protected _children:VeactChild[] = [];
@@ -33,6 +41,7 @@ export class VeactElement<P extends Props = {}> {
     render(document:Document):Node {
         subscriptions.set(this._subscriptions);
         if (typeof this._render === "function") {
+            functionizeProps(this.props);
             const res = this._render(this.props).render(document);
             subscriptions.reset();
             return res;
