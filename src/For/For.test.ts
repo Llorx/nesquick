@@ -6,7 +6,7 @@ import { JSDOM } from "jsdom";
 
 import { For } from "./For";
 import { useState } from "../State";
-import { VeactElement } from "../VeactElement";
+import { NesquickElement } from "../NesquickElement";
 
 test.describe("For", (test, after) => {
     global.requestAnimationFrame = process.nextTick as any;
@@ -26,13 +26,13 @@ test.describe("For", (test, after) => {
     }
     test("should render div", {
         ARRANGE() {
-            const element = new VeactElement(For as any, {
+            const element = new NesquickElement(For as any, {
                 each: () => [0, 1, 2],
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new VeactElement("div", {
+                    return new NesquickElement("div", {
                         children: [item]
                     })
                 }
@@ -50,13 +50,13 @@ test.describe("For", (test, after) => {
     test("should render dynamic div", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2]);
-            const element = new VeactElement(For as any, {
+            const element = new NesquickElement(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new VeactElement("div", {
+                    return new NesquickElement("div", {
                         children: [item]
                     })
                 }
@@ -76,13 +76,13 @@ test.describe("For", (test, after) => {
     test("should swap elements", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2]);
-            const element = new VeactElement(For as any, {
+            const element = new NesquickElement(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new VeactElement("div", {
+                    return new NesquickElement("div", {
                         children: [item]
                     })
                 }
@@ -102,13 +102,13 @@ test.describe("For", (test, after) => {
     test("should insert elements", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2]);
-            const element = new VeactElement(For as any, {
+            const element = new NesquickElement(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new VeactElement("div", {
+                    return new NesquickElement("div", {
                         children: [item]
                     })
                 }
@@ -128,13 +128,13 @@ test.describe("For", (test, after) => {
     test("should insert elements at the end", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2]);
-            const element = new VeactElement(For as any, {
+            const element = new NesquickElement(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new VeactElement("div", {
+                    return new NesquickElement("div", {
                         children: [item]
                     })
                 }
@@ -154,13 +154,13 @@ test.describe("For", (test, after) => {
     test("should delete elements", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2]);
-            const element = new VeactElement(For as any, {
+            const element = new NesquickElement(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new VeactElement("div", {
+                    return new NesquickElement("div", {
                         children: [item]
                     })
                 }
@@ -180,13 +180,13 @@ test.describe("For", (test, after) => {
     test("should insert, swap and delete elements", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
-            const element = new VeactElement(For as any, {
+            const element = new NesquickElement(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new VeactElement("div", {
+                    return new NesquickElement("div", {
                         children: [item]
                     })
                 }
@@ -206,13 +206,13 @@ test.describe("For", (test, after) => {
     test("should update again after insert, swap and delete elements", {
         async ARRANGE() {
             const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
-            const element = new VeactElement(For as any, {
+            const element = new NesquickElement(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new VeactElement("div", {
+                    return new NesquickElement("div", {
                         children: [item]
                     })
                 }
@@ -234,13 +234,13 @@ test.describe("For", (test, after) => {
     test.describe("duplicated elements", test => {
         test("should render div", {
             ARRANGE() {
-                const element = new VeactElement(For as any, {
+                const element = new NesquickElement(For as any, {
                     each: () => [0, 1, 2, 1, 0, 3, 4, 2, 5, 6],
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new VeactElement("div", {
+                        return new NesquickElement("div", {
                             children: [item]
                         })
                     }
@@ -258,13 +258,13 @@ test.describe("For", (test, after) => {
         test("should render dynamic div", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2]);
-                const element = new VeactElement(For as any, {
+                const element = new NesquickElement(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new VeactElement("div", {
+                        return new NesquickElement("div", {
                             children: [item]
                         })
                     }
@@ -284,13 +284,13 @@ test.describe("For", (test, after) => {
         test("should swap elements", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2, 3, 2]);
-                const element = new VeactElement(For as any, {
+                const element = new NesquickElement(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new VeactElement("div", {
+                        return new NesquickElement("div", {
                             children: [item]
                         })
                     }
@@ -310,13 +310,13 @@ test.describe("For", (test, after) => {
         test("should insert elements", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2]);
-                const element = new VeactElement(For as any, {
+                const element = new NesquickElement(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new VeactElement("div", {
+                        return new NesquickElement("div", {
                             children: [item]
                         })
                     }
@@ -336,13 +336,13 @@ test.describe("For", (test, after) => {
         test("should insert elements at the end", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2]);
-                const element = new VeactElement(For as any, {
+                const element = new NesquickElement(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new VeactElement("div", {
+                        return new NesquickElement("div", {
                             children: [item]
                         })
                     }
@@ -362,13 +362,13 @@ test.describe("For", (test, after) => {
         test("should delete elements", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 1, 2, 1]);
-                const element = new VeactElement(For as any, {
+                const element = new NesquickElement(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new VeactElement("div", {
+                        return new NesquickElement("div", {
                             children: [item]
                         })
                     }
@@ -388,13 +388,13 @@ test.describe("For", (test, after) => {
         test("should swap and delete elements", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 2, 1, 2, 1, 1, 3, 1]);
-                const element = new VeactElement(For as any, {
+                const element = new NesquickElement(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new VeactElement("div", {
+                        return new NesquickElement("div", {
                             children: [item]
                         })
                     }
@@ -414,13 +414,13 @@ test.describe("For", (test, after) => {
         test("should insert, swap and delete elements", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
-                const element = new VeactElement(For as any, {
+                const element = new NesquickElement(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new VeactElement("div", {
+                        return new NesquickElement("div", {
                             children: [item]
                         })
                     }
@@ -440,13 +440,13 @@ test.describe("For", (test, after) => {
         test("should update again after insert, swap and delete elements", {
             async ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
-                const element = new VeactElement(For as any, {
+                const element = new NesquickElement(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new VeactElement("div", {
+                        return new NesquickElement("div", {
                             children: [item]
                         })
                     }

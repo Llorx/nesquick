@@ -1,8 +1,8 @@
 import { JSX } from "./jsx-runtime";
-import { VeactElement, VeactParent } from "./VeactElement";
+import { NesquickElement, NesquickParent } from "./NesquickElement";
 
 // TODO: Test when deleting/inserting elements before/after rendering
-export class VeactFragment extends VeactElement<{children:any[]}> implements VeactParent { // TODO: any
+export class NesquickFragment extends NesquickElement<{children:any[]}> implements NesquickParent { // TODO: any
     private _lastNode:Node|null = null;
     private _fragment:Node|null = null;
     constructor(children:any[]) {

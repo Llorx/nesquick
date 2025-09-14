@@ -1,7 +1,7 @@
-import { VeactElement, Children, Child } from "./VeactElement";
+import { NesquickElement, Children, Child } from "./NesquickElement";
 
-export namespace Veact {
-    export function render(element:VeactElement<any>, parent?:HTMLElement|null) {
+export namespace Nesquick {
+    export function render(element:NesquickElement<any>, parent?:HTMLElement|null) {
         if (parent != null) {
             parent.appendChild(element.render(parent.ownerDocument));
         } else {
@@ -10,4 +10,4 @@ export namespace Veact {
     }
 }
 export { Children, Child };
-export default Veact;
+export default Nesquick;

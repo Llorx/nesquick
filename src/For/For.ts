@@ -1,6 +1,6 @@
 import { Props, JSX } from "../jsx-runtime";
 import { useRender, useState } from "../State";
-import { VeactFragment } from "../VeactFragment";
+import { NesquickFragment } from "../NesquickFragment";
 import { getMap, IdMap } from "./getMap";
 
 type ForChild = {
@@ -106,7 +106,7 @@ function getCycleMap<T>(props:Props<ForProps<T>>) {
 }
 export function For<T>(props:Props<ForProps<T>>) {
     const children:ForChild[] = [];
-    const fragment = new VeactFragment([]);
+    const fragment = new NesquickFragment([]);
     let cycle = false;
     const map = getCycleMap(props);
     useRender(() => {

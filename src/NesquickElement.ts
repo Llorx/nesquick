@@ -1,23 +1,23 @@
 import { subscriptions, Subscriptions, useRender } from "./State";
 
-export type Child = VeactElement<any>|VeactFragment|string|boolean|number|null|undefined|ChildFunc;
+export type Child = NesquickElement<any>|NesquickFragment|string|boolean|number|null|undefined|ChildFunc;
 export type Children = Child|Child[];
 export type ChildFunc = () => Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[];
 export type Props = Record<string, any>;
 
-export type FunctionComponent<P extends Props = {}> = (props:P) => VeactElement<P>;
+export type FunctionComponent<P extends Props = {}> = (props:P) => NesquickElement<P>;
 
-type VeactChild = {
+type NesquickChild = {
     node:Node|null;
 } & ({
-    element:VeactElement|null;
+    element:NesquickElement|null;
     fragment:null;
 } | {
     element:null;
-    fragment:VeactFragment|null;
+    fragment:NesquickFragment|null;
 });
 
-export type VeactParent = {
+export type NesquickParent = {
     appendChild(child:Node):void;
     replaceChild(newChild:Node, oldChild:Node):void;
     insertBefore(node:Node, child:Node|null):void;
@@ -31,9 +31,9 @@ function functionizeProps(props:Record<string, any>) {
         }
     }
 }
-export class VeactElement<P extends Props = {}> {
+export class NesquickElement<P extends Props = {}> {
     private _subscriptions = new Subscriptions();
-    protected _children:VeactChild[] = [];
+    protected _children:NesquickChild[] = [];
     constructor(private _render:string|FunctionComponent<P>, protected props:P) {
         this.props = props;
     }
@@ -67,13 +67,13 @@ export class VeactElement<P extends Props = {}> {
             }
         }
     }
-    protected _renderChildren(document:Document, parent:VeactParent, children?:Children) {
+    protected _renderChildren(document:Document, parent:NesquickParent, children?:Children) {
         if (children != null) {
             if (!Array.isArray(children)) {
                 children = [children];
             }
             for (const child of children) {
-                if (child instanceof VeactElement) {
+                if (child instanceof NesquickElement) {
                     this._renderChild(document, parent, this._pushChild(), child);
                 } else if (typeof child === "function") {
                     const ch = this._pushChild();
@@ -86,25 +86,25 @@ export class VeactElement<P extends Props = {}> {
             }
         }
     }
-    protected _pushChild():VeactChild {
-        const veactChild:VeactChild = {
+    protected _pushChild():NesquickChild {
+        const nesquickChild:NesquickChild = {
             node: null,
             element: null,
             fragment: null
         };
-        this._children.push(veactChild);
-        return veactChild;
+        this._children.push(nesquickChild);
+        return nesquickChild;
     }
-    protected _spliceChild(i:number):VeactChild {
-        const veactChild:VeactChild = {
+    protected _spliceChild(i:number):NesquickChild {
+        const nesquickChild:NesquickChild = {
             node: null,
             element: null,
             fragment: null
         };
-        this._children.splice(i, 0, veactChild);
-        return veactChild;
+        this._children.splice(i, 0, nesquickChild);
+        return nesquickChild;
     }
-    protected _swapChilds(parent:VeactParent, i1:number, i2:number) {
+    protected _swapChilds(parent:NesquickParent, i1:number, i2:number) {
         const ch1 = this._children[i1];
         const ch2 = this._children[i2];
         if (ch1 && ch2) {
@@ -135,47 +135,47 @@ export class VeactElement<P extends Props = {}> {
             }
         }
     }
-    protected _renderChild(document:Document, parent:VeactParent, veactChild:VeactChild, child:Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[]) {
-        if (veactChild.element != null) {
-            veactChild.element.dispose();
-        } else if (veactChild.fragment != null) {
-            veactChild.fragment.clear();
+    protected _renderChild(document:Document, parent:NesquickParent, nesquickChild:NesquickChild, child:Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[]) {
+        if (nesquickChild.element != null) {
+            nesquickChild.element.dispose();
+        } else if (nesquickChild.fragment != null) {
+            nesquickChild.fragment.clear();
         }
-        if (child instanceof VeactFragment || Array.isArray(child)) {
-            veactChild.element = null;
-            veactChild.fragment = Array.isArray(child) ? new VeactFragment(child) : child;
-            const node = veactChild.fragment.render(document);
+        if (child instanceof NesquickFragment || Array.isArray(child)) {
+            nesquickChild.element = null;
+            nesquickChild.fragment = Array.isArray(child) ? new NesquickFragment(child) : child;
+            const node = nesquickChild.fragment.render(document);
             const lastChild = node.lastChild;
-            if (veactChild.node) {
-                parent.replaceChild(node, veactChild.node);
+            if (nesquickChild.node) {
+                parent.replaceChild(node, nesquickChild.node);
             } else {
                 parent.appendChild(node);
             }
-            veactChild.node = lastChild;
-        } else if (child instanceof VeactElement) {
-            veactChild.element = child;
-            veactChild.fragment = null;
+            nesquickChild.node = lastChild;
+        } else if (child instanceof NesquickElement) {
+            nesquickChild.element = child;
+            nesquickChild.fragment = null;
             const node = child.render(document);
-            if (veactChild.node) {
-                parent.replaceChild(node, veactChild.node);
+            if (nesquickChild.node) {
+                parent.replaceChild(node, nesquickChild.node);
             } else {
                 parent.appendChild(node);
             }
-            veactChild.node = node;
+            nesquickChild.node = node;
         } else {
             const value = child == null ? "" : String(child);
-            if (veactChild.node == null || veactChild.element != null || veactChild.fragment != null) {
-                veactChild.element = null;
-                veactChild.fragment = null;
+            if (nesquickChild.node == null || nesquickChild.element != null || nesquickChild.fragment != null) {
+                nesquickChild.element = null;
+                nesquickChild.fragment = null;
                 const node = document.createTextNode(value);
-                if (veactChild.node) {
-                    parent.replaceChild(node, veactChild.node);
+                if (nesquickChild.node) {
+                    parent.replaceChild(node, nesquickChild.node);
                 } else {
                     parent.appendChild(node);
                 }
-                veactChild.node = node;
+                nesquickChild.node = node;
             } else {
-                veactChild.node.textContent = value;
+                nesquickChild.node.textContent = value;
             }
         }
     }
@@ -190,4 +190,4 @@ export class VeactElement<P extends Props = {}> {
 }
 
 // Cyclic dependency fix
-import { VeactFragment } from "./VeactFragment";
+import { NesquickFragment } from "./NesquickFragment";

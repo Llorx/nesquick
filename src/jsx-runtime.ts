@@ -1,15 +1,15 @@
-import { FunctionComponent, Props, VeactElement } from "./VeactElement";
-import { VeactFragment } from "./VeactFragment";
+import { FunctionComponent, Props, NesquickElement } from "./NesquickElement";
+import { NesquickFragment } from "./NesquickFragment";
 
 export const Fragment = Symbol();
 export function jsxs<P extends Props>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?: string) {
     if (type === Fragment) {
-        return new VeactFragment(props.children);
+        return new NesquickFragment(props.children);
     }
     if (key !== undefined) {
         (props as any).key = key;
     }
-    return new VeactElement(type, props);
+    return new NesquickElement(type, props);
 }
 export const jsx = jsxs;
 
@@ -40,7 +40,7 @@ export namespace JSX {
     export type SVGProps<T extends SVGElement = SVGElement> = Props<T>;
     export type JSXElements = {[K in keyof HTMLElementTagNameMap]:HTMLProps<HTMLElementTagNameMap[K]>}&{[K in keyof SVGElementTagNameMap]:SVGProps<SVGElementTagNameMap[K]>};
 
-    export type Element = VeactElement<any>;
+    export type Element = NesquickElement<any>;
     export interface IntrinsicElements extends JSXElements {
         // TODO: fragment
     }
@@ -48,7 +48,7 @@ export namespace JSX {
     export type ElementType =
         keyof IntrinsicElements |
         Component<any> |
-        typeof VeactElement<any>;
+        typeof NesquickElement<any>;
     
     declare const NotEmptyObject:unique symbol;
     export type IntrinsicAttributes = {

@@ -17,7 +17,7 @@
     "include": [
         "./src",
         "./src/jsx-runtime.ts",
-        "./src/cli/veact-tsc.ts",
+        "./src/cli/nesquick-tsc.ts",
         "./src/**/*.test.ts"
     ]
 }

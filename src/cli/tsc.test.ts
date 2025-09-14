@@ -12,7 +12,7 @@ test.describe("tsc", test => {
     }
     test("should compile with transforms", {
         async ARRANGE(after) {
-            const mockPath = Path.resolve(__dirname, "..", "..", "veact-tsc-mock");
+            const mockPath = Path.resolve(__dirname, "..", "..", "nesquick-tsc-mock");
             const libPath = after(Path.join(mockPath, "lib"), clearPath);
             try {
                 await clearPath(libPath);

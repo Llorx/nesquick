@@ -1,5 +1,5 @@
 {
-  "name": "veact",
+  "name": "nesquick",
   "version": "0.0.2",
   "description": "React-like library with focus on drawing performance",
   "types": "./lib/types",
@@ -10,8 +10,8 @@
     }
   },
   "bin": {
-    "veact-tsc": "lib/cli/veact-tsc.js",
-    "vtsc": "lib/cli/veact-tsc.js"
+    "nesquick-tsc": "lib/cli/nesquick-tsc.js",
+    "ntsc": "lib/cli/nesquick-tsc.js"
   },
   "sideEffects": false,
   "files": [
@@ -33,12 +33,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Llorx/veact.git"
+    "url": "git+https://github.com/Llorx/nesquick.git"
   },
   "bugs": {
-    "url": "https://github.com/Llorx/veact/issues"
+    "url": "https://github.com/Llorx/nesquick/issues"
   },
-  "homepage": "https://github.com/Llorx/veact#readme",
+  "homepage": "https://github.com/Llorx/nesquick#readme",
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.7.8",

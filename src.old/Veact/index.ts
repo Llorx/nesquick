@@ -1,7 +1,7 @@
-import { VeactState } from "../VeactState";
+import { NesquickState } from "../NesquickState";
 
-export { VeactState };
-export namespace Veact {
+export { NesquickState };
+export namespace Nesquick {
     export interface Props {
         [k:string]:any;
     }
@@ -11,34 +11,34 @@ export namespace Veact {
     interface DynamicOptionsProps<T extends Props, TReturn extends Props> extends DynamicOptions<T> {
         props:(props:T) => TReturn;
     }
-    type VeactElementConstructor<T = any> = new(props:T extends Props ? T : never, children:Children, type?:keyof JSX.IntrinsicElements) => T extends Props ? VeactElement<T> : VeactElement;
-    type DynamicElement = {data:any, i:number|null, element:VeactElement<any>};
-    type Dynamic = {constructor:VeactElementConstructor, callback:() => any|any[], options:DynamicOptionsProps<any, Props>|DynamicOptions<any>, children:DynamicElement[], keys:Map<any, DynamicElement>|null};
-    const dynamic:WeakMap<VeactElementConstructor[], Dynamic> = new WeakMap();
+    type NesquickElementConstructor<T = any> = new(props:T extends Props ? T : never, children:Children, type?:keyof JSX.IntrinsicElements) => T extends Props ? NesquickElement<T> : NesquickElement;
+    type DynamicElement = {data:any, i:number|null, element:NesquickElement<any>};
+    type Dynamic = {constructor:NesquickElementConstructor, callback:() => any|any[], options:DynamicOptionsProps<any, Props>|DynamicOptions<any>, children:DynamicElement[], keys:Map<any, DynamicElement>|null};
+    const dynamic:WeakMap<NesquickElementConstructor[], Dynamic> = new WeakMap();
     export type Sub<T> = T extends {[key:string]:any} ? T extends Array<any> ? T|(() => T) : {[K in keyof T]:T[K]|(() => T[K])} : T|(() => T);
     export type SubAll<T> = T extends {[key:string]:any} ? {[K in keyof T]:SubAll<T[K]>} : T|(() => T);
-    export type Children = (string|Node|VeactElement|(() => string|Props|Props[]))[];
-    export function createElement<T extends JSX.Props>(type:keyof JSX.IntrinsicElements, props?:T, ...children:Children):VeactElement<T>;
-    export function createElement<T extends Props>(type:new(props:T, children:Children) => VeactElement<T>, props?:T, ...children:Children):VeactElement<T>;
-    export function createElement<T extends Props>(type:(props:T) => VeactElement<any>, props?:T, ...children:Children):VeactElement<T>;
-    export function createElement<T extends Props>(type:keyof JSX.IntrinsicElements|(new(props:T, children:Children) => VeactElement<T>)|((props:T) => VeactElement<any>), props?:T, ...children:Children) {
+    export type Children = (string|Node|NesquickElement|(() => string|Props|Props[]))[];
+    export function createElement<T extends JSX.Props>(type:keyof JSX.IntrinsicElements, props?:T, ...children:Children):NesquickElement<T>;
+    export function createElement<T extends Props>(type:new(props:T, children:Children) => NesquickElement<T>, props?:T, ...children:Children):NesquickElement<T>;
+    export function createElement<T extends Props>(type:(props:T) => NesquickElement<any>, props?:T, ...children:Children):NesquickElement<T>;
+    export function createElement<T extends Props>(type:keyof JSX.IntrinsicElements|(new(props:T, children:Children) => NesquickElement<T>)|((props:T) => NesquickElement<any>), props?:T, ...children:Children) {
         if (typeof type === "string") {
-            return new VeactElement(props, children, type);
-        } else if (type.prototype instanceof VeactElement) {
-            return new (type as typeof VeactElement)(props, children);
+            return new NesquickElement(props, children, type);
+        } else if (type.prototype instanceof NesquickElement) {
+            return new (type as typeof NesquickElement)(props, children);
         } else {
-            let el = new VeactElement(props, children);
-            el.render = type as ((props:T) => VeactElement);
+            let el = new NesquickElement(props, children);
+            el.render = type as ((props:T) => NesquickElement);
             return el;
         }
     }
     
-    export class VeactElement<P extends Props = {}> {
-        static for<T extends Props|boolean>(this:VeactElementConstructor<T>, callback:() => T|T[]):VeactElementConstructor<T>[];
-        static for<T extends Props|boolean>(this:VeactElementConstructor<T>, callback:() => T|T[], options:T extends Props ? DynamicOptions<T> : undefined):VeactElementConstructor<T>[];
-        static for<T extends Props, TReturn extends Props>(this:VeactElementConstructor<TReturn>, callback:() => T|T[], options:DynamicOptionsProps<T, TReturn>):VeactElementConstructor<T>[];
-        static for<T extends Props, TReturn extends Props>(this:VeactElementConstructor<TReturn>, callback:() => T|T[], options?:DynamicOptionsProps<T, TReturn>) {
-            let list:VeactElementConstructor<TReturn>[] = [];
+    export class NesquickElement<P extends Props = {}> {
+        static for<T extends Props|boolean>(this:NesquickElementConstructor<T>, callback:() => T|T[]):NesquickElementConstructor<T>[];
+        static for<T extends Props|boolean>(this:NesquickElementConstructor<T>, callback:() => T|T[], options:T extends Props ? DynamicOptions<T> : undefined):NesquickElementConstructor<T>[];
+        static for<T extends Props, TReturn extends Props>(this:NesquickElementConstructor<TReturn>, callback:() => T|T[], options:DynamicOptionsProps<T, TReturn>):NesquickElementConstructor<T>[];
+        static for<T extends Props, TReturn extends Props>(this:NesquickElementConstructor<TReturn>, callback:() => T|T[], options?:DynamicOptionsProps<T, TReturn>) {
+            let list:NesquickElementConstructor<TReturn>[] = [];
             dynamic.set(list, {
                 constructor: this,
                 callback: callback,
@@ -48,23 +48,23 @@ export namespace Veact {
             });
             return list;
         };
-        private subs:Set<VeactState.Sub> = new Set();
-        private displaySub:VeactState.Sub|null = null;
-        private childrenElements:Set<VeactElement> = new Set();
+        private subs:Set<NesquickState.Sub> = new Set();
+        private displaySub:NesquickState.Sub|null = null;
+        private childrenElements:Set<NesquickElement> = new Set();
         private visible = true;
-        private parent:VeactElement|null = null;
+        private parent:NesquickElement|null = null;
         private destroyed = false;
         private parentVisible = true;
         private _content:Element|null = null;
-        private onremove:VeactElement[]|null = null;
+        private onremove:NesquickElement[]|null = null;
         state:{[key:string]:any}|null = null;
         constructor(readonly props?:P, protected readonly children:Children = [], protected readonly type?:keyof JSX.IntrinsicElements) {}
         protected draw(callback:() => void) {
-            let sub = VeactState.render(callback);
+            let sub = NesquickState.render(callback);
             this.subs.add(sub);
         }
         private drawDisplay(callback:() => void) {
-            this.displaySub = VeactState.render(callback);
+            this.displaySub = NesquickState.render(callback);
         }
         onRemove() {
             this.remove();
@@ -80,12 +80,12 @@ export namespace Veact {
             }
         }
         removed?() {}
-        private unsubscribe(onremove:(VeactElement)[] = []) {
+        private unsubscribe(onremove:(NesquickElement)[] = []) {
             if (this.displaySub) {
-                VeactState.cancel(this.displaySub);
+                NesquickState.cancel(this.displaySub);
             }
             for (let s of this.subs) {
-                VeactState.cancel(s);
+                NesquickState.cancel(s);
             }
             for (let c of this.childrenElements) {
                 c.unsubscribe(onremove);
@@ -106,38 +106,38 @@ export namespace Veact {
         get node():Element {
             if (!this._content) {
                 if (this.state) {
-                    this.state = VeactState.state(this.state);
+                    this.state = NesquickState.state(this.state);
                 }
-                let sub = VeactState.disableSub();
+                let sub = NesquickState.disableSub();
                 let el = this.render(this.props);
                 if (el) {
                     this.childrenElements.add(el);
                     el.parent = this;
                     this._content = el.node;
                 }
-                VeactState.enableSub(sub);
+                NesquickState.enableSub(sub);
                 this.onRender && this.onRender();
             }
             return this._content as Element;
         }
         private pause() {
             for (let sub of this.subs) {
-                VeactState.pause(sub);
+                NesquickState.pause(sub);
             }
         }
         private resume() {
             for (let sub of this.subs) {
-                VeactState.resume(sub);
+                NesquickState.resume(sub);
             }
         }
         private pauseDisplay() {
             if (this.displaySub) {
-                VeactState.pause(this.displaySub);
+                NesquickState.pause(this.displaySub);
             }
         }
         private resumeDisplay() {
             if (this.displaySub) {
-                VeactState.resume(this.displaySub);
+                NesquickState.resume(this.displaySub);
             }
         }
         private setParentVisible(v:boolean) {
@@ -196,7 +196,7 @@ export namespace Veact {
                 }
             }
         }
-        render(props?:P):VeactElement|null {
+        render(props?:P):NesquickElement|null {
             let el = document.createElement(this.type as keyof JSX.IntrinsicElements);
             this._content = el;
             if (this.props) {
@@ -279,7 +279,7 @@ export namespace Veact {
                 }
             }
         }
-        private removeChild(el:VeactElement) {
+        private removeChild(el:NesquickElement) {
             this.childrenElements.delete(el);
         }
         destroy() {
@@ -313,7 +313,7 @@ export namespace Veact {
                         });
                     })(c, i);
                 } else if (Array.isArray(c)) {
-                    let array = dynamic.get(VeactState.value(c));
+                    let array = dynamic.get(NesquickState.value(c));
                     if (array) {
                         let n:{node:Node|null} = {node: null};
                         childrenData[i] = n;
@@ -390,7 +390,7 @@ export namespace Veact {
                     } else {
                         childrenData[i] = this.appendChilds(c);
                     }
-                } else if (c instanceof VeactElement) {
+                } else if (c instanceof NesquickElement) {
                     if (!c.destroyed) {
                         this.childrenElements.add(c);
                         c.parent = this;
@@ -434,8 +434,8 @@ declare global {
         type SVGProps<T extends SVGElement = SVGElement> = Props<T>;
         type JSXElements = {[K in keyof HTMLElementTagNameMap]:HTMLProps<HTMLElementTagNameMap[K]>}&{[K in keyof SVGElementTagNameMap]:SVGProps<SVGElementTagNameMap[K]>};
 
-        type Element = Veact.VeactElement;
-        //type ElementClass = Veact.VeactElement;
+        type Element = Nesquick.NesquickElement;
+        //type ElementClass = Nesquick.NesquickElement;
         interface IntrinsicElements extends JSXElements {
             // TODO: fragment
         }

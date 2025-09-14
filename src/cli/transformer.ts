@@ -1,6 +1,6 @@
 import * as TS from "typescript";
 
-type VeactVisitor = (node:TS.Node) => TS.Node;
+type NesquickVisitor = (node:TS.Node) => TS.Node;
 function getSingleIdentifier(node:TS.Node) {
     const identifiers:TS.Node[] = [];
     node.forEachChild(node => {
@@ -34,19 +34,19 @@ function hasIdentifier(node:TS.Node) {
 }
 export const transformer: TS.TransformerFactory<TS.SourceFile> = context => {
     return sourceFile => {
-        const visitorGeneric:VeactVisitor = node => {
+        const visitorGeneric:NesquickVisitor = node => {
             if (TS.isJsxAttribute(node)) {
                 return TS.visitEachChild(node, visitorAttribute, context);
             }
             return TS.visitEachChild(node, visitorGeneric, context);
         };
-        const visitorAttribute:VeactVisitor = node => {
+        const visitorAttribute:NesquickVisitor = node => {
             if (TS.isJsxExpression(node)) {
                 return TS.visitEachChild(node, visitorExpression, context);
             }
             return TS.visitEachChild(node, visitorGeneric, context);
         };
-        const visitorExpression:VeactVisitor = node => {
+        const visitorExpression:NesquickVisitor = node => {
             if (TS.isParenthesizedExpression(node)) {
                 const body = getSingleBody(node);
                 if (body) {

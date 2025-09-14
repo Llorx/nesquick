@@ -1,10 +1,10 @@
 declare global {
     interface Object {
-        val<T>(this:T):VeactState.ReturnReturnType<T>;
+        val<T>(this:T):NesquickState.ReturnReturnType<T>;
     }
 }
 
-export namespace VeactState {
+export namespace NesquickState {
     export interface Prop {
         proxified:Map<string|number|Symbol, Prop>;
         value:any;

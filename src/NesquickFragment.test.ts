@@ -4,11 +4,11 @@ import { setImmediate } from "timers/promises";
 import test from "arrange-act-assert";
 import { JSDOM } from "jsdom";
 
-import { VeactFragment } from "./VeactFragment";
-import { VeactElement } from "./VeactElement";
+import { NesquickFragment } from "./NesquickFragment";
+import { NesquickElement } from "./NesquickElement";
 import { useState } from "./State";
 
-test.describe("VeactFragment", (test, after) => {
+test.describe("NesquickFragment", (test, after) => {
     global.requestAnimationFrame = process.nextTick as any;
     after(null, () => global.requestAnimationFrame = undefined as any);
     function newDocument() {
@@ -24,7 +24,7 @@ test.describe("VeactFragment", (test, after) => {
     test.describe("render", test => {
         test("should render a fragment", {
             ARRANGE() {
-                const element = new VeactFragment(["test1", "test2", "test3"]);
+                const element = new NesquickFragment(["test1", "test2", "test3"]);
                 const document = newDocument();
                 return { element, document };
             },
@@ -39,7 +39,7 @@ test.describe("VeactFragment", (test, after) => {
             test("should render", {
                 ARRANGE() {
                     const [ getChild ] = useState("test2");
-                    const element = new VeactFragment(["test1", getChild, "test3"]);
+                    const element = new NesquickFragment(["test1", getChild, "test3"]);
                     const document = newDocument();
                     return { element, document };
                 },
@@ -53,7 +53,7 @@ test.describe("VeactFragment", (test, after) => {
             test("should update", {
                 ARRANGE() {
                     const [ getChild, setChild ] = useState("test");
-                    const element = new VeactFragment(["test1", getChild, "test3"]);
+                    const element = new NesquickFragment(["test1", getChild, "test3"]);
                     const document = newDocument();
                     const div = element.render(document);
                     return { setChild, div, document };
@@ -69,7 +69,7 @@ test.describe("VeactFragment", (test, after) => {
             test("should update if last element changes", {
                 ARRANGE() {
                     const [ getChild, setChild ] = useState("test");
-                    const element = new VeactFragment(["test1", "test2", getChild]);
+                    const element = new NesquickFragment(["test1", "test2", getChild]);
                     const document = newDocument();
                     const div = element.render(document);
                     return { setChild, div, document };
@@ -85,7 +85,7 @@ test.describe("VeactFragment", (test, after) => {
             test("should update if first element changes", {
                 ARRANGE() {
                     const [ getChild, setChild ] = useState("test");
-                    const element = new VeactFragment([getChild, "test2", "test3"]);
+                    const element = new NesquickFragment([getChild, "test2", "test3"]);
                     const document = newDocument();
                     const div = element.render(document);
                     return { setChild, div, document };
@@ -102,12 +102,12 @@ test.describe("VeactFragment", (test, after) => {
                 test("should update in correct location if child changes and the fragment is updated", {
                     ARRANGE() {
                         // Create a fragment where the last node changes
-                        const [ getChild, setChild ] = useState(new VeactElement("div", { children: "xxx" }));
-                        const element = new VeactFragment([getChild]);
+                        const [ getChild, setChild ] = useState(new NesquickElement("div", { children: "xxx" }));
+                        const element = new NesquickFragment([getChild]);
 
                         // Create an element that accesses this fragment to keet a reference
-                        const [ getChild2, setChild2 ] = useState<VeactFragment|string>(element);
-                        const element2 = new VeactElement("div", {
+                        const [ getChild2, setChild2 ] = useState<NesquickFragment|string>(element);
+                        const element2 = new NesquickElement("div", {
                             children: [getChild2, "test2"]
                         });
 
@@ -117,7 +117,7 @@ test.describe("VeactFragment", (test, after) => {
                     },
                     async ACT({ setChild, setChild2 }) {
                         // Update fragment last child to change the last node
-                        setChild(new VeactElement("div", { children: "xxx3" }));
+                        setChild(new NesquickElement("div", { children: "xxx3" }));
                         await waitRenderTick();
 
                         // Update element children to render before the fragment last node
