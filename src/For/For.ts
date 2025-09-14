@@ -25,9 +25,14 @@ export type ForProps<T> = {
     each:T[];
     children:ChildRender<T>;
 } & ({
-    id?:(item:T, i:number)=>unknown;
+    ids?:never;
+    id:(item:T, i:number)=>unknown;
 } | {
-    ids?:(item:T, i:number)=>unknown[];
+    ids:(item:T, i:number)=>unknown[];
+    id?:never;
+} | {
+    ids?:never;
+    id?:never;
 });
 
 function renderChild<T>(child:InitialForChild, item:T, render:ChildRender<T>) {
@@ -106,7 +111,7 @@ export function For<T>(props:Props<ForProps<T>>) {
     const map = getCycleMap(props);
     useRender(() => {
         cycle = !cycle;
-        const each = props.each().slice(); // slice just in case it returns a reference that is modified somewhere
+        const each = props.each().slice(); // slice just in case it returns a reference that is modified while rendering
         if (children.length === 0) {
             for (let i = 0; i < each.length; i++) {
                 const item = each[i];

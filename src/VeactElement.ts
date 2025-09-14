@@ -1,10 +1,9 @@
-import { JSX } from "./jsx-runtime";
 import { subscriptions, Subscriptions, useRender } from "./State";
 
 export type Child = VeactElement<any>|VeactFragment|string|boolean|number|null|undefined|ChildFunc;
 export type Children = Child|Child[];
 export type ChildFunc = () => Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[];
-export type Props = Record<string, any> & JSX.IntrinsicAttributes;
+export type Props = Record<string, any>;
 
 export type FunctionComponent<P extends Props = {}> = (props:P) => VeactElement<P>;
 
@@ -35,7 +34,7 @@ function functionizeProps(props:Record<string, any>) {
 export class VeactElement<P extends Props = {}> {
     private _subscriptions = new Subscriptions();
     protected _children:VeactChild[] = [];
-    constructor(private _render:string|FunctionComponent<P>, protected props:P, readonly key?:string) {
+    constructor(private _render:string|FunctionComponent<P>, protected props:P) {
         this.props = props;
     }
     render(document:Document):Node {

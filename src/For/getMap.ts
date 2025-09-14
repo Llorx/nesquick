@@ -21,8 +21,8 @@ export function getMap<T, CHILD>(props:IdMapProps<T>) {
         let idLength = 0;
         return {
             getId(item, i) {
-                const ids = props.ids!(item, i)
-                if (ids.length === 0) {
+                const ids = props.ids!(item, i);
+                if (!ids || ids.length === 0) {
                     throw new Error(`Invalid ids array length. ids() should not return an empty array`);
                 }
                 if (idLength === 0) {
