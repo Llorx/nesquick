@@ -1,5 +1,5 @@
 import { JSX } from "./jsx-runtime";
-import { cancelSubscription, Subscription, useRender } from "./State";
+import { subscriptions, Subscriptions, useRender } from "./State";
 
 export type Child = VeactElement<any>|VeactFragment|string|boolean|number|null|undefined|ChildFunc;
 export type Children = Child|Child[];
@@ -25,14 +25,17 @@ export type VeactParent = {
 }
 
 export class VeactElement<P extends Props = {}> {
-    private _subscriptions:Subscription<any>[] = [];
+    private _subscriptions = new Subscriptions();
     protected _children:VeactChild[] = [];
     constructor(private _render:string|FunctionComponent<P>, protected props:P, readonly key?:string) {
         this.props = props;
     }
     render(document:Document):Node {
+        subscriptions.set(this._subscriptions);
         if (typeof this._render === "function") {
-            return this._render(this.props).render(document);
+            const res = this._render(this.props).render(document);
+            subscriptions.reset();
+            return res;
         }
         const element = document.createElement(this._render);
         if (this.props != null) {
@@ -40,18 +43,16 @@ export class VeactElement<P extends Props = {}> {
         }
         this._renderChildren(document, element, this.props.children);
         this.props = {} as P; // GC unused properties
+        subscriptions.reset();
         return element;
     }
     private _renderProps(element:HTMLElement, props:Props) {
         for (const k in props) {
             if (k !== "children") {
                 if (typeof props[k] === "function") {
-                    const sub = useRender(props[k], v => {
+                    useRender(props[k], v => {
                         element.setAttribute(k, String(v));
                     });
-                    if (sub) {
-                        this._subscriptions.push(sub);
-                    }
                 } else {
                     element.setAttribute(k, String(props[k]));
                 }
@@ -68,12 +69,9 @@ export class VeactElement<P extends Props = {}> {
                     this._renderChild(document, parent, this._pushChild(), child);
                 } else if (typeof child === "function") {
                     const ch = this._pushChild();
-                    const sub = useRender(child, children => {
+                    useRender(child, children => {
                         this._renderChild(document, parent, ch, children);
                     });
-                    if (sub) {
-                        this._subscriptions.push(sub);
-                    }
                 } else {
                     this._renderChild(document, parent, this._pushChild(), child);
                 }
@@ -174,9 +172,7 @@ export class VeactElement<P extends Props = {}> {
         }
     }
     dispose() {
-        for (const sub of this._subscriptions) {
-            cancelSubscription(sub);
-        }
+        this._subscriptions.dispose();
         for (const child of this._children) {
             if (child.element) {
                 child.element.dispose();

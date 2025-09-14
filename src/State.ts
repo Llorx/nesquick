@@ -53,6 +53,27 @@ function renderReactors() {
     pendingReactor = null;
 }
 
+export class Subscriptions {
+    list:Subscription<any>[] = [];
+    onDispose:(()=>void)[] = [];
+    dispose() {
+        for (const sub of this.list) {
+            cancelSubscription(sub);
+        }
+        for (const cb of this.onDispose) {
+            cb();
+        }
+    }
+}
+let currentSubscriptions:Subscriptions[] = [];
+export namespace subscriptions {
+    export function set(container:Subscriptions) {
+        currentSubscriptions.push(container);
+    }
+    export function reset() {
+        currentSubscriptions.pop();
+    }
+}
 export function useState<T>(value:T):State<T> {
     const reactors = new Set<Subscription<T>>();
     const getValue = () => {
@@ -72,10 +93,16 @@ export function useState<T>(value:T):State<T> {
     return [ getValue, setValue ];
 }
 export function useEffect<T>(cb:()=>T, reaction:((data:T)=>void)|null = null) {
-    return newSubscription(cb, reaction, true);
+    newSubscription(cb, reaction, true);
 }
 export function useRender<T>(cb:()=>T, reaction:((data:T)=>void)|null = null) {
-    return newSubscription(cb, reaction, false);
+    newSubscription(cb, reaction, false);
+}
+export function useDispose(cb:()=>void) {
+    const container = currentSubscriptions[currentSubscriptions.length - 1];
+    if (container) {
+        container.onDispose.push(cb);
+    }
 }
 function newSubscription<T>(cb:()=>T, reaction:((data:T)=>void)|null, effect:boolean) {
     const sub:Subscription<T> = {
@@ -91,11 +118,14 @@ function newSubscription<T>(cb:()=>T, reaction:((data:T)=>void)|null, effect:boo
     renderReactor(sub, true);
     if (sub.states.size === 0) {
         cancelSubscription(sub);
-        return null;
+    } else {
+        const container = currentSubscriptions[currentSubscriptions.length - 1];
+        if (container) {
+            container.list.push(sub);
+        }
     }
-    return sub;
 }
-export function cancelSubscription(sub:Subscription<any>) {
+function cancelSubscription(sub:Subscription<any>) {
     sub.cancelled = true;
     for (const reactors of sub.states.keys()) {
         reactors.delete(sub);
@@ -113,4 +143,3 @@ function runSubscription<T>(sub:Subscription<T>) {
     }
     sub.reaction?.(res);
 }
-

@@ -1,24 +1,25 @@
 import * as Assert from "assert";
 import { setImmediate } from "timers/promises";
 
-import test from "arrange-act-assert";
+import test, { After } from "arrange-act-assert";
 
 import * as State from "./State";
 
 test.describe("State", (test, after) => {
     global.requestAnimationFrame = process.nextTick as any;
     after(null, () => global.requestAnimationFrame = undefined as any);
+    function newSubscriptions(after:After) {
+        const subscriptions = new State.Subscriptions();
+        after(State.subscriptions.set(subscriptions), () => State.subscriptions.reset());
+        return subscriptions;
+    }
     function newRenderSub<T>(cb:()=>T, reaction?:(data:T)=>void) {
         let res:T|null = null;
-        const sub = State.useRender(cb, v => {
+        State.useRender(cb, v => {
             res = v;
             reaction?.(v);
         });
         return {
-            cancelled: !sub,
-            cancel() {
-                State.cancelSubscription(sub!);
-            },
             assert(value:T|null) {
                 Assert.deepStrictEqual(res, value);
             }
@@ -26,14 +27,11 @@ test.describe("State", (test, after) => {
     }
     function newEffectSub<T>(cb:()=>T, reaction?:(data:T)=>void) {
         let res:T|null = null;
-        const sub = State.useEffect(cb, v => {
+        State.useEffect(cb, v => {
             res = v;
             reaction?.(v);
         });
         return {
-            cancel() {
-                State.cancelSubscription(sub!);
-            },
             assert(value:T|null) {
                 Assert.deepStrictEqual(res, value);
             }
@@ -53,12 +51,79 @@ test.describe("State", (test, after) => {
             Assert.strictEqual(getValue(), 1);
         }
     });
-    test("should not return a subscription if no state was accessed", {
-        ACT() {
-            return newRenderSub(()=>123);
+    test("should register a subscription if a state was accessed", {
+        ARRANGE(after) {
+            const subscriptions = newSubscriptions(after);
+            const [ getCounter ] = State.useState(0);
+            return { getCounter, subscriptions };
         },
-        ASSERT(sub) {
-            Assert.strictEqual(sub.cancelled, true);
+        ACT({ getCounter }) {
+            newRenderSub(getCounter);
+        },
+        ASSERT(_, { subscriptions }) {
+            Assert.strictEqual(subscriptions.list.length, 1);
+        }
+    });
+    test("should not register a subscription if no state was accessed", {
+        ARRANGE(after) {
+            return newSubscriptions(after);
+        },
+        ACT() {
+            newRenderSub(() => 123);
+        },
+        ASSERT(_, subscriptions) {
+            Assert.strictEqual(subscriptions.list.length, 0);
+        }
+    });
+    test("should register different renders in different subscriptions", {
+        ARRANGE() {
+            const [ getCounter ] = State.useState(0);
+            return { getCounter };
+        },
+        ACT({ getCounter }) {
+            // add 1 element to each subscription
+            const subscriptions1 = newSubscriptions(after);
+            newRenderSub(getCounter);
+            const subscriptions2 = newSubscriptions(after);
+            newRenderSub(getCounter);
+            const subscriptions3 = newSubscriptions(after);
+            newRenderSub(getCounter);
+
+            // pop subscriptions and add extra elements while doing so
+            State.subscriptions.reset();
+            newRenderSub(getCounter);
+            State.subscriptions.reset();
+            newRenderSub(getCounter);
+            newRenderSub(getCounter);
+
+            return { subscriptions1, subscriptions2, subscriptions3 };
+        },
+        ASSERTS: {
+            "first subscriptions should have 3 elements"({ subscriptions1 }) {
+                Assert.strictEqual(subscriptions1.list.length, 3);
+            },
+            "second subscriptions should have 3 elements"({ subscriptions2 }) {
+                Assert.strictEqual(subscriptions2.list.length, 2);
+            },
+            "third subscriptions should have 3 elements"({ subscriptions3 }) {
+                Assert.strictEqual(subscriptions3.list.length, 1);
+            }
+        }
+    });
+    test("should call useDispose callback", {
+        async ARRANGE() {
+            const subscriptions = newSubscriptions(after);
+            const called = {
+                done: false
+            };
+            State.useDispose(() => called.done = true);
+            return { called, subscriptions };
+        },
+        async ACT({ subscriptions }) {
+            subscriptions.dispose();
+        },
+        ASSERT(_, { called }) {
+            Assert.strictEqual(called.done, true);
         }
     });
     test.describe("useRender", test => {
@@ -88,7 +153,7 @@ test.describe("State", (test, after) => {
         });
         test("should run after render tick", {
             ARRANGE() {
-                const [getCounter, setCounter] = State.useState(0);
+                const [ getCounter, setCounter ] = State.useState(0);
                 const sub = newRenderSub(getCounter);
                 return { sub, setCounter };
             },
@@ -102,14 +167,15 @@ test.describe("State", (test, after) => {
         });
         test("should not update a cancelled subscription", {
             async ARRANGE() {
-                const [getCounter, setCounter] = State.useState(0);
+                const subscriptions = newSubscriptions(after);
+                const [ getCounter, setCounter ] = State.useState(0);
                 const sub = newRenderSub(getCounter);
                 setCounter(1);
                 await waitRenderTick();
-                return { sub, setCounter };
+                return { sub, subscriptions, setCounter };
             },
-            async ACT({ sub, setCounter }) {
-                sub.cancel();
+            async ACT({ subscriptions, setCounter }) {
+                subscriptions.dispose();
                 setCounter(2); // Should not update to this value
                 await waitRenderTick();
             },
@@ -119,7 +185,7 @@ test.describe("State", (test, after) => {
         });
         test("should queue subscriptions", {
             ARRANGE() {
-                const [getCounter, setCounter] = State.useState(0);
+                const [ getCounter, setCounter ] = State.useState(0);
                 const sub1 = newRenderSub(getCounter);
                 const sub2 = newRenderSub(getCounter);
                 const sub3 = newRenderSub(getCounter);
@@ -143,15 +209,18 @@ test.describe("State", (test, after) => {
         });
         test("should run a queued subscription after a previous cancelled subscription", {
             ARRANGE() {
-                const [getCounter, setCounter] = State.useState(0);
+                newSubscriptions(after);
+                const [ getCounter, setCounter ] = State.useState(0);
                 const sub1 = newRenderSub(getCounter);
+                const subscriptions2 = newSubscriptions(after);
                 const sub2 = newRenderSub(getCounter);
+                newSubscriptions(after);
                 const sub3 = newRenderSub(getCounter);
-                return { sub1, sub2, sub3, setCounter };
+                return { subscriptions2, sub1, sub2, sub3, setCounter };
             },
-            async ACT({ sub2, setCounter }) {
+            async ACT({ subscriptions2, setCounter }) {
                 setCounter(1);
-                sub2.cancel();
+                subscriptions2.dispose();
                 await waitRenderTick();
             },
             ASSERTS: {
@@ -168,16 +237,19 @@ test.describe("State", (test, after) => {
         });
         test("should run a queued subscription when cancelling a subscription in the reaction callback", {
             ARRANGE() {
-                const [getCounter, setCounter] = State.useState(0);
+                const [ getCounter, setCounter ] = State.useState(0);
+                newSubscriptions(after);
                 const sub1 = newRenderSub(getCounter);
                 let first = true;
+                const subscription2 = newSubscriptions(after);
                 const sub2 = newRenderSub(getCounter, () => {
                     if (first) {
                         first = false; // on creation
                     } else {
-                        sub2.cancel(); // on first setCounter
+                        subscription2.dispose(); // on first setCounter
                     }
                 });
+                newSubscriptions(after);
                 const sub3 = newRenderSub(getCounter);
                 return { sub1, sub2, sub3, setCounter };
             },
@@ -212,7 +284,7 @@ test.describe("State", (test, after) => {
         });
         test("should update subscription value", {
             ARRANGE() {
-                const [getCounter, setCounter] = State.useState(0);
+                const [ getCounter, setCounter ] = State.useState(0);
                 const sub = newEffectSub(getCounter);
                 return { sub, setCounter };
             },
@@ -225,13 +297,14 @@ test.describe("State", (test, after) => {
         });
         test("should cancel a subscription with state update", {
             ARRANGE() {
-                const [getCounter, setCounter] = State.useState(0);
+                const [ getCounter, setCounter ] = State.useState(0);
+                const subscriptions = newSubscriptions(after);
                 const sub = newEffectSub(getCounter);
                 setCounter(1);
-                return { sub, setCounter };
+                return { subscriptions, sub, setCounter };
             },
-            ACT({ sub, setCounter }) {
-                sub.cancel();
+            ACT({ subscriptions, setCounter }) {
+                subscriptions.dispose();
                 setCounter(2); // Should not update to this value
             },
             ASSERT(_, { sub }) {
@@ -243,13 +316,14 @@ test.describe("State", (test, after) => {
         ARRANGE() {
             return State.useState(0);
         },
-        ACT([getCounter, setCounter]) {
+        ACT([ getCounter, setCounter ]) {
             let first = true;
+            const subscriptions = newSubscriptions(after);
             const sub = newEffectSub(getCounter, () => {
                 if (first) {
                     first = false; // on creation
                 } else {
-                    sub.cancel(); // on first setCounter
+                    subscriptions.dispose(); // on first setCounter
                 }
             });
             setCounter(1); // this will cancel
@@ -262,7 +336,8 @@ test.describe("State", (test, after) => {
     });
     test("should run a subscription added while running a reaction callback", {
         ARRANGE() {
-            const [getCounter, setCounter] = State.useState(0);
+            const [ getCounter, setCounter ] = State.useState(0);
+            const subscriptions = newSubscriptions(after);
             const sub1 = newRenderSub(getCounter);
             let first = true;
             const sub4stub = {
@@ -276,7 +351,7 @@ test.describe("State", (test, after) => {
                 }
             });
             const sub3 = newRenderSub(getCounter);
-            return { sub1, sub2, sub3, sub4stub, setCounter };
+            return { sub1, sub2, sub3, sub4stub, subscriptions, setCounter };
         },
         async ACT({ setCounter }) {
             setCounter(1);
@@ -294,6 +369,9 @@ test.describe("State", (test, after) => {
             },
             "fourth subscription should get the new counter"(_, { sub4stub }) {
                 sub4stub.sub!.assert(1);
+            },
+            "subscriptions should have all elements"(_, { subscriptions }) {
+                Assert.strictEqual(subscriptions.list.length, 4);
             }
         }
     });
