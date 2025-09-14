@@ -15,8 +15,8 @@ export function getMap<T, CHILD>(props:Required<Extract<IdMapProps<T>, {ids?:unk
 export function getMap<T, CHILD>(props:IdMapProps<T>):IdMap<T, T, CHILD>;
 export function getMap<T, CHILD>(props:IdMapProps<T>) {
     if ("ids" in props && props.ids) {
-        // TODO: Add pre-amde maps for 1 element in the ids array, 2 elements, etc
-        // and return the corresponding map on the first getId
+        // TODO: Add pre-made maps for 1 element in the ids array, 2 elements, etc
+        // and patch the map on the first getId
         const childrenMap = new Map<unknown, any>();
         let idLength = 0;
         return {

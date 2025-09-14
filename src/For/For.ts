@@ -3,34 +3,6 @@ import { useRender, useState } from "../State";
 import { VeactFragment } from "../VeactFragment";
 import { getMap, IdMap } from "./getMap";
 
-// hay una propiedad "uniqueIds" que indica
-// si se pueden dar ids duplicadas.
-// por defecto es false.
-// cuando son todo ids únicas, entonces no hay problema.
-// cuando se pueden dar ids duplicadas, entonces
-// se aplica la lógica del i:
-// 
-// cambia el elemento en la posición 3
-// cómo lo detecta?
-// si la id del elemento en la posición 3 es diferente, entonces
-// busca el primer elemento con esa ID
-// mueve el nodo
-// ya está
-// es decir, solo cambia que el mapa de elementos es un mapa-array
-// entonces es un mapa de ids de 1 elemento, pero múltiple
-// es decir, hay push y hay pop
-
-/*
-
-se hace setchild
-eso setea el child, tiene que ser en un array, obligatorio
-después se hace getchild
-eso hace get solo del child, con un offset para hacer get en orden (el primer i, después el segundo i...)
-con esto no hace falta detectar duplicados
-
-
-*/
-
 type ForChild = {
     id:unknown;
     i:number;
@@ -42,7 +14,7 @@ type ForChild = {
 type ForChilds = {
     list:ForChild[];
     offset:number;
-    cycle:number;
+    cycle:boolean;
 }
 type InitialForChild = Omit<ForChild, "element"|"childs"> & {
     element:ForChild["element"]|null;
@@ -68,15 +40,72 @@ function renderChild<T>(child:InitialForChild, item:T, render:ChildRender<T>) {
     child.element = render(item, () => getI());
     return child as ForChild;
 };
+function getCycleMap<T>(props:Props<ForProps<T>>) {
+    const map:IdMap<T, unknown, ForChilds> = getMap(props);
+    let cycle = false;
+    return {
+        ...map,
+        cycle() {
+            cycle = !cycle;
+        },
+        pushChild(id:unknown, child:ForChild) {
+            const childs = map.getChild(id);
+            if (childs) {
+                child.childs = childs;
+                childs.list.push(child);
+            } else {
+                map.setChild(id, child.childs = {
+                    list: [child],
+                    offset: 0,
+                    cycle: cycle
+                });
+            }
+        },
+        getChild(id:unknown) {
+            const childs = map.getChild(id);
+            if (childs) {
+                if (childs.cycle === cycle) {
+                    if (childs.offset < childs.list.length) {
+                        return childs.list[childs.offset++];
+                    }
+                } else {
+                    childs.cycle = cycle;
+                    childs.offset = 1;
+                    return childs.list[0];
+                }
+            }
+        },
+        popChild(child:ForChild) {
+            const childs = child.childs;
+            if (childs.list.length === 1) {
+                map.deleteChild(child.id);
+            } else {
+                if (childs.offset === childs.list.length) {
+                    childs.offset--;
+                }
+                childs.list.pop();
+            }
+        },
+        skipChild(child:ForChild) {
+            const childs = child.childs;
+            if (childs.cycle === cycle) {
+                if (childs.offset < childs.list.length) {
+                    childs.offset++;
+                }
+            } else {
+                childs.offset = 1;
+                childs.cycle = cycle;
+            }
+        }
+    };
+}
 export function For<T>(props:Props<ForProps<T>>) {
     const children:ForChild[] = [];
     const fragment = new VeactFragment([]);
     let cycle = false;
-    let childsCycle = 0;
-    const map:IdMap<T, unknown, ForChilds> = getMap(props);
+    const map = getCycleMap(props);
     useRender(() => {
         cycle = !cycle;
-        childsCycle = 0;
         const each = props.each().slice(); // slice just in case it returns a reference that is modified somewhere
         if (children.length === 0) {
             for (let i = 0; i < each.length; i++) {
@@ -90,17 +119,7 @@ export function For<T>(props:Props<ForProps<T>>) {
                     cycle: cycle,
                     childs: null
                 }, item, props.children);
-                const childs = map.getChild(id);
-                if (childs) {
-                    child.childs = childs;
-                    childs.list.push(child);
-                } else {
-                    map.setChild(id, child.childs = {
-                        list: [child],
-                        offset: 0,
-                        cycle: 2
-                    });
-                }
+                map.pushChild(id, child);
                 children.push(child);
                 fragment.appendElement(child.element);
             }
@@ -111,27 +130,17 @@ export function For<T>(props:Props<ForProps<T>>) {
             map.clearChilds();
             children.splice(0);
         } else {
+            map.cycle();
             // cycle existing elements to know which ones are deleted
             for (let i = 0; i < each.length; i++) {
                 const item = each[i];
                 const id = map.getId(item, i);
-                const childs = map.getChild(id);
-                if (childs) {
-                    if (childs.cycle === childsCycle) {
-                        if (childs.offset < childs.list.length) {
-                            const child = childs.list[childs.offset++];
-                            if (child) {
-                                child.cycle = cycle;
-                            }
-                        }
-                    } else {
-                        childs.cycle = childsCycle;
-                        childs.list[0].cycle = cycle;
-                        childs.offset = 1;
-                    }
+                const child = map.getChild(id);
+                if (child) {
+                    child.cycle = cycle;
                 }
             }
-            childsCycle++;
+            map.cycle();
             let min = Math.min(children.length, each.length);
             let offset = 0;
             // look for elements and delete/create/swap them
@@ -146,34 +155,14 @@ export function For<T>(props:Props<ForProps<T>>) {
                         // remove it and repeat the loop
                         fragment.removeElement(i);
                         children.splice(i--, 1);
-                        const childs = oldChild.childs;
-                        if (childs.list.length === 1) {
-                            map.deleteChild(oldChild.id);
-                        } else {
-                            if (childs.offset === childs.list.length) {
-                                childs.offset--;
-                            }
-                            childs.list.pop();
-                        }
+                        map.popChild(oldChild);
                         if (children.length < each.length) {
                             min = children.length;
                         }
                         offset--;
                         continue;
                     } else {
-                        let child:ForChild|undefined;
-                        const childs = map.getChild(id);
-                        if (childs) {
-                            if (childs.cycle === childsCycle) {
-                                if (childs.offset < childs.list.length) {
-                                    child = childs.list[childs.offset++];
-                                }
-                            } else {
-                                childs.cycle = childsCycle;
-                                child = childs.list[0];
-                                childs.offset = 1;
-                            }
-                        }
+                        let child = map.getChild(id);
                         if (!child) {
                             // if the element is new, create it in this position
                             child = renderChild({
@@ -185,17 +174,7 @@ export function For<T>(props:Props<ForProps<T>>) {
                                 childs: null
                             }, item, props.children);
                             fragment.spliceElement(i, child.element);
-                            const childs = map.getChild(id);
-                            if (childs) {
-                                child.childs = childs;
-                                childs.list.push(child);
-                            } else {
-                                map.setChild(id, child.childs = {
-                                    list: [child],
-                                    offset: 0,
-                                    cycle: 2
-                                });
-                            }
+                            map.pushChild(id, child);
                             children.splice(i, 0, child);
                             if (children.length <= each.length) {
                                 min = children.length;
@@ -212,15 +191,7 @@ export function For<T>(props:Props<ForProps<T>>) {
                         }
                     }
                 } else {
-                    const childs = oldChild.childs;
-                    if (childs.cycle === childsCycle) {
-                        if (childs.offset < childs.list.length) {
-                            childs.offset++;
-                        }
-                    } else {
-                        childs.offset = 1;
-                        childs.cycle = childsCycle;
-                    }
+                    map.skipChild(oldChild);
                     if (oldChild.i !== i) {
                         oldChild.i = i;
                         oldChild.setI?.(i);
@@ -239,17 +210,7 @@ export function For<T>(props:Props<ForProps<T>>) {
                     cycle: cycle,
                     childs: null
                 }, item, props.children);
-                const childs = map.getChild(id);
-                if (childs) {
-                    child.childs = childs;
-                    childs.list.push(child);
-                } else {
-                    map.setChild(id, child.childs = {
-                        list: [child],
-                        offset: 0,
-                        cycle: 2
-                    });
-                }
+                map.pushChild(id, child);
                 children.push(child);
                 fragment.appendElement(child.element);
             }
@@ -259,15 +220,7 @@ export function For<T>(props:Props<ForProps<T>>) {
                 for (let i = children.length - 1; i >= each.length; i--) {
                     const oldChild = children[i];
                     fragment.removeElement(i);
-                    const childs = oldChild.childs;
-                    if (childs.list.length === 1) {
-                        map.deleteChild(oldChild.id);
-                    } else {
-                        if (childs.offset === childs.list.length) {
-                            childs.offset--;
-                        }
-                        childs.list.pop();
-                    }
+                    map.popChild(oldChild);
                 }
                 children.splice(each.length);
             }
@@ -275,21 +228,3 @@ export function For<T>(props:Props<ForProps<T>>) {
     });
     return fragment;
 }
-/*
-Para poder tener control de los hijos, un componente veactelement necesita saber de este array de hijos
-El problema es que un componente de este tipo no tiene padre donde colocarlos
-
-si se hiciera lo de los hijos en un componente, como el render obliga a tener un parent, ya estaría hecho
-es decir, si mi componente recibe hijos, tengo que meter esos hijos en un componente
-PERO si hago un For, entonces no tengo componente padre
-sino que el resultado del for es lo que se mete en el componente padre
-entonces es peor de rendimiento
-
-En qué momento un componente tiene padre?
-cuando se llama a render.
-Es decir, cuando se llama a render es porque tiene un componente donde colocar el elemento
-así que lo que habría que hacer es:
-- de alguna forma tener un append que llama a un método donde se le pasa el padre donde se va a hacer append
-- así el for puede saber dónde se va a colocar
-- y del mismo modo el resto de elementos lo pueden saber
-*/
