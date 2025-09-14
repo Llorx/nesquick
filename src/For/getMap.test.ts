@@ -129,7 +129,7 @@ test.describe("getMap", test => {
                 return map.getId(123, 0);
             },
             ASSERT(res) {
-                Assert.deepStrictEqual(res, { item: 123, i: 0 });
+                Assert.strictEqual(res, 123);
             }
         });
         test("should equal ids", {
@@ -165,10 +165,10 @@ test.describe("getMap", test => {
                 return getMap<number, string>({});
             },
             ACT(map) {
-                map.setChild({ item: 123, i: 0 }, "123");
+                map.setChild(123, "123");
             },
             ASSERT(_, map) {
-                Assert.strictEqual(map.getChild({ item: 123, i: 0 }), "123");
+                Assert.strictEqual(map.getChild(123), "123");
             }
         });
         test("should set multiple items", {
@@ -176,83 +176,47 @@ test.describe("getMap", test => {
                 return getMap<number, string>({});
             },
             ACT(map) {
-                map.setChild({ item: 123, i: 0 }, "123");
-                map.setChild({ item: 124, i: 1 }, "124");
+                map.setChild(123, "123");
+                map.setChild(124, "124");
             },
             ASSERTS: {
                 "should get first item"(_, map) {
-                    Assert.strictEqual(map.getChild({ item: 123, i: 0 }), "123");
+                    Assert.strictEqual(map.getChild(123), "123");
                 },
                 "should get second item"(_, map) {
-                    Assert.strictEqual(map.getChild({ item: 124, i: 1 }), "124");
-                }
-            }
-        });
-        test("should set multiple items with same base id", {
-            ARRANGE() {
-                return getMap<number, string>({});
-            },
-            ACT(map) {
-                map.setChild({ item: 123, i: 0 }, "123_0");
-                map.setChild({ item: 123, i: 1 }, "123_1");
-            },
-            ASSERTS: {
-                "should get first item"(_, map) {
-                    Assert.strictEqual(map.getChild({ item: 123, i: 0 }), "123_0");
-                },
-                "should get second item"(_, map) {
-                    Assert.strictEqual(map.getChild({ item: 123, i: 1 }), "123_1");
+                    Assert.strictEqual(map.getChild(124), "124");
                 }
             }
         });
         test("should delete item", {
             ARRANGE() {
-                const map = getMap<number, string>({});
-                map.setChild({ item: 123, i: 0 }, "123");
+                const map =  getMap<number, string>({});
+                map.setChild(123, "123");
                 return map;
             },
             ACT(map) {
-                map.deleteChild({ item: 123, i: 0 });
+                map.deleteChild(123);
             },
             ASSERT(_, map) {
-                Assert.strictEqual(map.getChild({ item: 123, i: 0 }), undefined);
+                Assert.strictEqual(map.getChild(123), undefined);
             }
         });
         test("should delete single item having multiple items", {
             ARRANGE() {
-                const map = getMap<number, string>({});
-                map.setChild({ item: 123, i: 0 }, "123");
-                map.setChild({ item: 124, i: 1 }, "124");
+                const map =  getMap<number, string>({});
+                map.setChild(123, "123");
+                map.setChild(124, "124");
                 return map;
             },
             ACT(map) {
-                map.deleteChild({ item: 123, i: 0 });
+                map.deleteChild(123);
             },
             ASSERTS: {
                 "should not get first item"(_, map) {
-                    Assert.strictEqual(map.getChild({ item: 123, i: 0 }), undefined);
+                    Assert.strictEqual(map.getChild(123), undefined);
                 },
                 "should get second item"(_, map) {
-                    Assert.strictEqual(map.getChild({ item: 124, i: 1 }), "124");
-                }
-            }
-        });
-        test("should delete single item having multiple items with same base id", {
-            ARRANGE() {
-                const map = getMap<number, string>({});
-                map.setChild({ item: 123, i: 0 }, "123_0");
-                map.setChild({ item: 123, i: 1 }, "123_1");
-                return map;
-            },
-            ACT(map) {
-                map.deleteChild({ item: 123, i: 0 });
-            },
-            ASSERTS: {
-                "should not get first item"(_, map) {
-                    Assert.strictEqual(map.getChild({ item: 123, i: 0 }), undefined);
-                },
-                "should get second item"(_, map) {
-                    Assert.strictEqual(map.getChild({ item: 123, i: 1 }), "123_1");
+                    Assert.strictEqual(map.getChild(124), "124");
                 }
             }
         });

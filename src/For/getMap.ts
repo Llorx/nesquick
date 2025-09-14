@@ -12,31 +12,9 @@ export type IdMap<T, ID, CHILD> = {
 type IdMapProps<T> = Props<Pick<Extract<ForProps<T>, {id?:unknown}>, "id">|Pick<Extract<ForProps<T>, {ids?:unknown}>, "ids">>;
 export function getMap<T, CHILD>(props:Required<Extract<IdMapProps<T>, {id?:unknown}>>):IdMap<T, unknown, CHILD>;
 export function getMap<T, CHILD>(props:Required<Extract<IdMapProps<T>, {ids?:unknown}>>):IdMap<T, unknown[], CHILD>;
-export function getMap<T, CHILD>(props:IdMapProps<T>):IdMap<T, { item:T; i:number }, CHILD>;
+export function getMap<T, CHILD>(props:IdMapProps<T>):IdMap<T, T, CHILD>;
 export function getMap<T, CHILD>(props:IdMapProps<T>) {
-    if ("id" in props && props.id) {
-        const childrenMap = new Map<unknown, CHILD>();
-        return {
-            getId(item, i) {
-                return props.id!(item, i);
-            },
-            equalsId(a, b) {
-                return a === b;
-            },
-            getChild(id) {
-                return childrenMap.get(id);
-            },
-            setChild(id, child) {
-                childrenMap.set(id, child);
-            },
-            deleteChild(id) {
-                childrenMap.delete(id);
-            },
-            clearChilds() {
-                childrenMap.clear();
-            }
-        } satisfies IdMap<T, unknown, CHILD>;
-    } else if ("ids" in props && props.ids) {
+    if ("ids" in props && props.ids) {
         // TODO: Add pre-amde maps for 1 element in the ids array, 2 elements, etc
         // and return the corresponding map on the first getId
         const childrenMap = new Map<unknown, any>();
@@ -108,40 +86,24 @@ export function getMap<T, CHILD>(props:IdMapProps<T>) {
             }
         } satisfies IdMap<T, unknown[], CHILD>;
     } else {
-        const childrenMap = new Map<T, Map<number, CHILD>>();
+        const childrenMap = new Map<unknown, CHILD>();
         return {
-            getId(item, i) {
-                return { item, i };
-            },
+            getId: ("id" in props && props.id) || (item => item),
             equalsId(a, b) {
-                return a.item === b.item && a.i === b.i;
+                return a === b;
             },
             getChild(id) {
-                const subList = childrenMap.get(id.item);
-                if (subList) {
-                    return subList.get(id.i);
-                }
+                return childrenMap.get(id);
             },
             setChild(id, child) {
-                const subList = childrenMap.get(id.item);
-                if (!subList) {
-                    childrenMap.set(id.item, new Map([[id.i, child]]));
-                } else {
-                    subList.set(id.i, child);
-                }
+                childrenMap.set(id, child);
             },
             deleteChild(id) {
-                const subList = childrenMap.get(id.item);
-                if (subList) {
-                    subList.delete(id.i);
-                    if (subList.size === 0) {
-                        childrenMap.delete(id.item);
-                    }
-                }
+                childrenMap.delete(id);
             },
             clearChilds() {
                 childrenMap.clear();
             }
-        } satisfies IdMap<T, { item:T; i:number }, CHILD>;
+        } satisfies IdMap<T, unknown, CHILD>;
     }
 };
