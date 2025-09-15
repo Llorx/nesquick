@@ -2,7 +2,7 @@ import { FunctionComponent, Props, NesquickElement } from "./NesquickElement";
 import { NesquickFragment } from "./NesquickFragment";
 
 export const Fragment = Symbol();
-export function jsxs<P extends Props>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?: string) {
+export function jsxs<P extends Props>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null) {
     if (type === Fragment) {
         return new NesquickFragment(props.children);
     }
