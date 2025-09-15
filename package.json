@@ -1,12 +1,13 @@
 {
   "name": "nesquick",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "React-like library with focus on drawing performance",
   "types": "./lib/types",
   "main": "./lib",
   "typesVersions": {
     "*": {
-      "jsx-runtime": ["./lib/types/jsx-runtime.d.ts"]
+      "jsx-runtime": ["./lib/types/jsx-runtime.d.ts"],
+      "jsx-dev-runtime": ["./lib/types/jsx-dev-runtime.d.ts"]
     }
   },
   "bin": {

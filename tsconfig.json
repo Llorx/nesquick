@@ -17,6 +17,7 @@
     "include": [
         "./src",
         "./src/jsx-runtime.ts",
+        "./src/jsx-dev-runtime.ts",
         "./src/cli/nesquick-tsc.ts",
         "./src/**/*.test.ts"
     ]
