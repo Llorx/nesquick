@@ -1,6 +1,6 @@
 {
   "name": "nesquick",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "React-like library with focus on drawing performance",
   "types": "./lib/types",
   "main": "./lib",
@@ -17,7 +17,8 @@
   "sideEffects": false,
   "files": [
     "lib/",
-    "LICENSE"
+    "jsx-runtime.js",
+    "jsx-dev-runtime.js"
   ],
   "private": false,
   "publishConfig": {
