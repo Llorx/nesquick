@@ -6,6 +6,8 @@
         "plugins": []
     },
     "include": [
+        "./src/jsx-runtime.ts",
+        "./src/jsx-dev-runtime.ts",
         "./src/index.ts"
     ]
 }
