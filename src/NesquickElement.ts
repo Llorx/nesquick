@@ -58,9 +58,14 @@ export class NesquickElement<P extends Props = {}> {
         for (const k in props) {
             if (k !== "children") {
                 if (typeof props[k] === "function") {
-                    useRender(props[k], v => {
-                        element.setAttribute(k, String(v));
-                    });
+                    if (k.startsWith("on")) {
+                        // TODO: Validate events
+                        element[k.toLowerCase() as "onclick"] = props[k];
+                    } else {
+                        useRender(props[k], v => {
+                            element.setAttribute(k, String(v));
+                        });
+                    }
                 } else {
                     element.setAttribute(k, String(props[k]));
                 }

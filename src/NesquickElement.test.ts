@@ -438,4 +438,48 @@ test.describe("NesquickElement", (test, after) => {
             });
         });
     });
+    test.describe("events", test => {
+        test("should not run event callbacks on creation", {
+            ARRANGE() {
+                const obj = {
+                    ok: false
+                };
+                const element = new NesquickElement("div", {
+                    onClick() {
+                        obj.ok = true;
+                    }
+                });
+                const document = newDocument();
+                return { element, document, obj };
+            },
+            ACT({ element, document }) {
+                return element.render(document);
+            },
+            ASSERT(_, { obj }) {
+                Assert.strictEqual(obj.ok, false);
+            }
+        });
+        test("should run events", {
+            ARRANGE() {
+                const obj = {
+                    ok: false
+                };
+                const element = new NesquickElement("div", {
+                    onClick() {
+                        obj.ok = true;
+                    }
+                });
+                const document = newDocument();
+                const node = element.render(document);
+                return { node, obj };
+            },
+            ACT({ node }) {
+                const event = new node.ownerDocument!.defaultView!.window.MouseEvent("click", { bubbles: true });
+                node.dispatchEvent(event);
+            },
+            ASSERT(_, { obj }) {
+                Assert.strictEqual(obj.ok, true);
+            }
+        });
+    });
 });
