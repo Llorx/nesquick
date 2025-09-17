@@ -4,7 +4,7 @@ import { transformer } from "../cli/transformer";
 
 export const viteTransformerPlugin = {
     name: "nesquick-transformer",
-    enforce: "pre",
+    enforce: "pre" as const,
     transform(code:string, id:string) {
         if (id.endsWith(".ts") || id.endsWith(".tsx")) {
             const result = TS.transpileModule(code, {
