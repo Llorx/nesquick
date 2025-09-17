@@ -7,10 +7,6 @@ type JsxSource = {
     lineNumber:number;
     columnNumber?:number;
 };
-export function jsxDEV<P extends Props>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key:string|number|null, _isStaticChildren:boolean, source:JsxSource, self:any) {
-    return jsx(type, {
-        ...props,
-        __source: source,
-        __self: self
-    }, key);
+export function jsxDEV<P extends Props>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key:string|number|null, _isStaticChildren:boolean, _source:JsxSource, _self:any) {
+    return jsx(type, props, key);
 }
