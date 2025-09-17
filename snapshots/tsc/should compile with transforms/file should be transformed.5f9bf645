@@ -1,4 +1,4 @@
-ÿo"	validatedT"data"œ"use strict";
+ÿo"	validatedT"data"ˆ"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.component = component;
 function ok() {
@@ -8,8 +8,14 @@ var pepe = {
     a: function () { return 123; }
 };
 function component() {
-    return ok("div", { asd: 123, asd2: ok, asd3: ok, asd4: function () { return pepe.a; }, asd5: function () { return pepe.a(); }, asd6: function () { return 123; }, asd7: 1 + 2, asd8: 1 === 1 ? 2 : 3, asd9: function () { return 1 === 1 ? 2 : ok; }, asd10: function () { return 1 + ok(); } },
+    return ok("div", { asd: 123, asd2: ok, asd3: ok, asd4: function () { return pepe.a; }, asd5: function () { return pepe.a(); }, asd6: function () { return 123; }, asd7: 1 + 2, asd8: 1 === 1 ? 2 : 3, asd9: function () { return 1 === 1 ? 2 : ok; }, asd10: function () { return 1 + ok(); }, asd11: function () { return ok(); }, asd12: function () {
+            return ok();
+        }, asd13: function () {
+            return ok();
+        } },
         "asd",
-        123);
+        123,
+        function () { return ok() ? "ok" : null; },
+        (1 === 1) ? "ok" : null);
 }
 {

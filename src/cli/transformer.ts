@@ -35,12 +35,6 @@ function hasIdentifier(node:TS.Node) {
 export const transformer: TS.TransformerFactory<TS.SourceFile> = context => {
     return sourceFile => {
         const visitorGeneric:NesquickVisitor = node => {
-            if (TS.isJsxAttribute(node)) {
-                return TS.visitEachChild(node, visitorAttribute, context);
-            }
-            return TS.visitEachChild(node, visitorGeneric, context);
-        };
-        const visitorAttribute:NesquickVisitor = node => {
             if (TS.isJsxExpression(node)) {
                 return TS.visitEachChild(node, visitorExpression, context);
             }
@@ -59,7 +53,7 @@ export const transformer: TS.TransformerFactory<TS.SourceFile> = context => {
                 } else {
                     return TS.factory.createArrowFunction(undefined, undefined, [], undefined, TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken), node);
                 }
-            } else if (TS.isExpression(node) && hasIdentifier(node)) {
+            } else if (!TS.isFunctionLike(node) && TS.isExpression(node) && hasIdentifier(node)) {
                 return TS.factory.createArrowFunction(undefined, undefined, [], undefined, TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken), node);
             }
             return node;
