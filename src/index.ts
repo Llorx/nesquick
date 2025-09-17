@@ -5,3 +5,4 @@ export * from "./State";
 export * from "./NesquickFragment";
 export * from "./NesquickComponent";
 export * from "./jsx-runtime";
+export * from "./plugins/viteTransformerPlugin";
