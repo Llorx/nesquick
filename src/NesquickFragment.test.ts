@@ -5,7 +5,7 @@ import test from "arrange-act-assert";
 import { JSDOM } from "jsdom";
 
 import { NesquickFragment } from "./NesquickFragment";
-import { NesquickElement } from "./NesquickElement";
+import { NesquickComponent } from "./NesquickComponent";
 import { useState } from "./State";
 
 test.describe("NesquickFragment", (test, after) => {
@@ -24,12 +24,12 @@ test.describe("NesquickFragment", (test, after) => {
     test.describe("render", test => {
         test("should render a fragment", {
             ARRANGE() {
-                const element = new NesquickFragment(["test1", "test2", "test3"]);
+                const component = new NesquickFragment(["test1", "test2", "test3"]);
                 const document = newDocument();
-                return { element, document };
+                return { component, document };
             },
-            ACT({ element, document }) {
-                return element.render(document);
+            ACT({ component, document }) {
+                return component.render(document);
             },
             ASSERT(res, { document }) {
                 assertHTML(document, res, "test1test2test3<!--Fragment-->");
@@ -39,12 +39,12 @@ test.describe("NesquickFragment", (test, after) => {
             test("should render", {
                 ARRANGE() {
                     const [ getChild ] = useState("test2");
-                    const element = new NesquickFragment(["test1", getChild, "test3"]);
+                    const component = new NesquickFragment(["test1", getChild, "test3"]);
                     const document = newDocument();
-                    return { element, document };
+                    return { component, document };
                 },
-                ACT({ element, document }) {
-                    return element.render(document);
+                ACT({ component, document }) {
+                    return component.render(document);
                 },
                 ASSERT(res, { document }) {
                     assertHTML(document, res, "test1test2test3<!--Fragment-->");
@@ -53,9 +53,9 @@ test.describe("NesquickFragment", (test, after) => {
             test("should update", {
                 ARRANGE() {
                     const [ getChild, setChild ] = useState("test");
-                    const element = new NesquickFragment(["test1", getChild, "test3"]);
+                    const component = new NesquickFragment(["test1", getChild, "test3"]);
                     const document = newDocument();
-                    const div = element.render(document);
+                    const div = component.render(document);
                     return { setChild, div, document };
                 },
                 async ACT({ setChild }) {
@@ -66,12 +66,12 @@ test.describe("NesquickFragment", (test, after) => {
                     assertHTML(document, div, "test1test2test3<!--Fragment-->");
                 }
             });
-            test("should update if last element changes", {
+            test("should update if last component changes", {
                 ARRANGE() {
                     const [ getChild, setChild ] = useState("test");
-                    const element = new NesquickFragment(["test1", "test2", getChild]);
+                    const component = new NesquickFragment(["test1", "test2", getChild]);
                     const document = newDocument();
-                    const div = element.render(document);
+                    const div = component.render(document);
                     return { setChild, div, document };
                 },
                 async ACT({ setChild }) {
@@ -82,12 +82,12 @@ test.describe("NesquickFragment", (test, after) => {
                     assertHTML(document, div, "test1test2test3<!--Fragment-->");
                 }
             });
-            test("should update if first element changes", {
+            test("should update if first component changes", {
                 ARRANGE() {
                     const [ getChild, setChild ] = useState("test");
-                    const element = new NesquickFragment([getChild, "test2", "test3"]);
+                    const component = new NesquickFragment([getChild, "test2", "test3"]);
                     const document = newDocument();
-                    const div = element.render(document);
+                    const div = component.render(document);
                     return { setChild, div, document };
                 },
                 async ACT({ setChild }) {
@@ -102,25 +102,25 @@ test.describe("NesquickFragment", (test, after) => {
                 test("should update in correct location if child changes and the fragment is updated", {
                     ARRANGE() {
                         // Create a fragment where the last node changes
-                        const [ getChild, setChild ] = useState(new NesquickElement("div", { children: "xxx" }));
-                        const element = new NesquickFragment([getChild]);
+                        const [ getChild, setChild ] = useState(new NesquickComponent("div", { children: "xxx" }));
+                        const component = new NesquickFragment([getChild]);
 
-                        // Create an element that accesses this fragment to keet a reference
-                        const [ getChild2, setChild2 ] = useState<NesquickFragment|string>(element);
-                        const element2 = new NesquickElement("div", {
+                        // Create an component that accesses this fragment to keet a reference
+                        const [ getChild2, setChild2 ] = useState<NesquickFragment|string>(component);
+                        const component2 = new NesquickComponent("div", {
                             children: [getChild2, "test2"]
                         });
 
                         const document = newDocument();
-                        const div = element2.render(document);
+                        const div = component2.render(document);
                         return { setChild, setChild2, div, document };
                     },
                     async ACT({ setChild, setChild2 }) {
                         // Update fragment last child to change the last node
-                        setChild(new NesquickElement("div", { children: "xxx3" }));
+                        setChild(new NesquickComponent("div", { children: "xxx3" }));
                         await waitRenderTick();
 
-                        // Update element children to render before the fragment last node
+                        // Update component children to render before the fragment last node
                         setChild2("test1");
                         await waitRenderTick();
                     },

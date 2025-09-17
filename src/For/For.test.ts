@@ -6,7 +6,7 @@ import { JSDOM } from "jsdom";
 
 import { For } from "./For";
 import { useState } from "../State";
-import { NesquickElement } from "../NesquickElement";
+import { NesquickComponent } from "../NesquickComponent";
 
 test.describe("For", (test, after) => {
     global.requestAnimationFrame = process.nextTick as any;
@@ -26,22 +26,22 @@ test.describe("For", (test, after) => {
     }
     test("should render div", {
         ARRANGE() {
-            const element = new NesquickElement(For as any, {
+            const component = new NesquickComponent(For as any, {
                 each: () => [0, 1, 2],
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new NesquickElement("div", {
+                    return new NesquickComponent("div", {
                         children: [item]
                     })
                 }
             });
             const document = newDocument();
-            return { element, document };
+            return { component, document };
         },
-        ACT({ element, document }) {
-            return element.render(document);
+        ACT({ component, document }) {
+            return component.render(document);
         },
         ASSERT(res, { document }) {
             assertHTML(document, res, getFragmentHTML([0, 1, 2]));
@@ -50,19 +50,19 @@ test.describe("For", (test, after) => {
     test("should render dynamic div", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2]);
-            const element = new NesquickElement(For as any, {
+            const component = new NesquickComponent(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new NesquickElement("div", {
+                    return new NesquickComponent("div", {
                         children: [item]
                     })
                 }
             });
             const document = newDocument();
-            const res = element.render(document);
+            const res = component.render(document);
             return { setList, res, document };
         },
         async ACT({ setList }) {
@@ -73,22 +73,22 @@ test.describe("For", (test, after) => {
             assertHTML(document, res, getFragmentHTML([1, 2, 3]));
         }
     });
-    test("should swap elements", {
+    test("should swap components", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2]);
-            const element = new NesquickElement(For as any, {
+            const component = new NesquickComponent(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new NesquickElement("div", {
+                    return new NesquickComponent("div", {
                         children: [item]
                     })
                 }
             });
             const document = newDocument();
-            const res = element.render(document);
+            const res = component.render(document);
             return { setList, res, document };
         },
         async ACT({ setList }) {
@@ -99,22 +99,22 @@ test.describe("For", (test, after) => {
             assertHTML(document, res, getFragmentHTML([1, 2, 0]));
         }
     });
-    test("should insert elements", {
+    test("should insert components", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2]);
-            const element = new NesquickElement(For as any, {
+            const component = new NesquickComponent(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new NesquickElement("div", {
+                    return new NesquickComponent("div", {
                         children: [item]
                     })
                 }
             });
             const document = newDocument();
-            const res = element.render(document);
+            const res = component.render(document);
             return { setList, res, document };
         },
         async ACT({ setList }) {
@@ -125,22 +125,22 @@ test.describe("For", (test, after) => {
             assertHTML(document, res, getFragmentHTML([0, 3, 1, 2]));
         }
     });
-    test("should insert elements at the end", {
+    test("should insert components at the end", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2]);
-            const element = new NesquickElement(For as any, {
+            const component = new NesquickComponent(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new NesquickElement("div", {
+                    return new NesquickComponent("div", {
                         children: [item]
                     })
                 }
             });
             const document = newDocument();
-            const res = element.render(document);
+            const res = component.render(document);
             return { setList, res, document };
         },
         async ACT({ setList }) {
@@ -151,22 +151,22 @@ test.describe("For", (test, after) => {
             assertHTML(document, res, getFragmentHTML([0, 1, 2, 3]));
         }
     });
-    test("should delete elements", {
+    test("should delete components", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2]);
-            const element = new NesquickElement(For as any, {
+            const component = new NesquickComponent(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new NesquickElement("div", {
+                    return new NesquickComponent("div", {
                         children: [item]
                     })
                 }
             });
             const document = newDocument();
-            const res = element.render(document);
+            const res = component.render(document);
             return { setList, res, document };
         },
         async ACT({ setList }) {
@@ -177,22 +177,22 @@ test.describe("For", (test, after) => {
             assertHTML(document, res, getFragmentHTML([0, 2]));
         }
     });
-    test("should insert, swap and delete elements", {
+    test("should insert, swap and delete components", {
         ARRANGE() {
             const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
-            const element = new NesquickElement(For as any, {
+            const component = new NesquickComponent(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new NesquickElement("div", {
+                    return new NesquickComponent("div", {
                         children: [item]
                     })
                 }
             });
             const document = newDocument();
-            const res = element.render(document);
+            const res = component.render(document);
             return { setList, res, document };
         },
         async ACT({ setList }) {
@@ -203,22 +203,22 @@ test.describe("For", (test, after) => {
             assertHTML(document, res, getFragmentHTML([7, 8, 9, 10, 2, 6, 5, 4, 11]));
         }
     });
-    test("should update again after insert, swap and delete elements", {
+    test("should update again after insert, swap and delete components", {
         async ARRANGE() {
             const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
-            const element = new NesquickElement(For as any, {
+            const component = new NesquickComponent(For as any, {
                 each: getList,
                 id(item:any) {
                     return item;
                 },
                 children(item:any) {
-                    return new NesquickElement("div", {
+                    return new NesquickComponent("div", {
                         children: [item]
                     })
                 }
             });
             const document = newDocument();
-            const res = element.render(document);
+            const res = component.render(document);
             setList([7, 8, 9, 10, 2, 6, 5, 4, 11]);
             await waitRenderTick();
             return { setList, res, document };
@@ -231,25 +231,25 @@ test.describe("For", (test, after) => {
             assertHTML(document, res, getFragmentHTML([4, 9, 2, 10, 12, 6, 13, 14, 5]));
         }
     });
-    test.describe("duplicated elements", test => {
+    test.describe("duplicated components", test => {
         test("should render div", {
             ARRANGE() {
-                const element = new NesquickElement(For as any, {
+                const component = new NesquickComponent(For as any, {
                     each: () => [0, 1, 2, 1, 0, 3, 4, 2, 5, 6],
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new NesquickElement("div", {
+                        return new NesquickComponent("div", {
                             children: [item]
                         })
                     }
                 });
                 const document = newDocument();
-                return { element, document };
+                return { component, document };
             },
-            ACT({ element, document }) {
-                return element.render(document);
+            ACT({ component, document }) {
+                return component.render(document);
             },
             ASSERT(res, { document }) {
                 assertHTML(document, res, getFragmentHTML([0, 1, 2, 1, 0, 3, 4, 2, 5, 6]));
@@ -258,19 +258,19 @@ test.describe("For", (test, after) => {
         test("should render dynamic div", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2]);
-                const element = new NesquickElement(For as any, {
+                const component = new NesquickComponent(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new NesquickElement("div", {
+                        return new NesquickComponent("div", {
                             children: [item]
                         })
                     }
                 });
                 const document = newDocument();
-                const res = element.render(document);
+                const res = component.render(document);
                 return { setList, res, document };
             },
             async ACT({ setList }) {
@@ -281,22 +281,22 @@ test.describe("For", (test, after) => {
                 assertHTML(document, res, getFragmentHTML([0, 1, 2, 1, 0, 3, 4, 2, 5, 6]));
             }
         });
-        test("should swap elements", {
+        test("should swap components", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2, 3, 2]);
-                const element = new NesquickElement(For as any, {
+                const component = new NesquickComponent(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new NesquickElement("div", {
+                        return new NesquickComponent("div", {
                             children: [item]
                         })
                     }
                 });
                 const document = newDocument();
-                const res = element.render(document);
+                const res = component.render(document);
                 return { setList, res, document };
             },
             async ACT({ setList }) {
@@ -307,22 +307,22 @@ test.describe("For", (test, after) => {
                 assertHTML(document, res, getFragmentHTML([1, 2, 3, 0, 2]));
             }
         });
-        test("should insert elements", {
+        test("should insert components", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2]);
-                const element = new NesquickElement(For as any, {
+                const component = new NesquickComponent(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new NesquickElement("div", {
+                        return new NesquickComponent("div", {
                             children: [item]
                         })
                     }
                 });
                 const document = newDocument();
-                const res = element.render(document);
+                const res = component.render(document);
                 return { setList, res, document };
             },
             async ACT({ setList }) {
@@ -333,22 +333,22 @@ test.describe("For", (test, after) => {
                 assertHTML(document, res, getFragmentHTML([0, 1, 3, 1, 2]));
             }
         });
-        test("should insert elements at the end", {
+        test("should insert components at the end", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2]);
-                const element = new NesquickElement(For as any, {
+                const component = new NesquickComponent(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new NesquickElement("div", {
+                        return new NesquickComponent("div", {
                             children: [item]
                         })
                     }
                 });
                 const document = newDocument();
-                const res = element.render(document);
+                const res = component.render(document);
                 return { setList, res, document };
             },
             async ACT({ setList }) {
@@ -359,22 +359,22 @@ test.describe("For", (test, after) => {
                 assertHTML(document, res, getFragmentHTML([0, 1, 2, 1]));
             }
         });
-        test("should delete elements", {
+        test("should delete components", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 1, 2, 1]);
-                const element = new NesquickElement(For as any, {
+                const component = new NesquickComponent(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new NesquickElement("div", {
+                        return new NesquickComponent("div", {
                             children: [item]
                         })
                     }
                 });
                 const document = newDocument();
-                const res = element.render(document);
+                const res = component.render(document);
                 return { setList, res, document };
             },
             async ACT({ setList }) {
@@ -385,22 +385,22 @@ test.describe("For", (test, after) => {
                 assertHTML(document, res, getFragmentHTML([0, 1, 2]));
             }
         });
-        test("should swap and delete elements", {
+        test("should swap and delete components", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 2, 1, 2, 1, 1, 3, 1]);
-                const element = new NesquickElement(For as any, {
+                const component = new NesquickComponent(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new NesquickElement("div", {
+                        return new NesquickComponent("div", {
                             children: [item]
                         })
                     }
                 });
                 const document = newDocument();
-                const res = element.render(document);
+                const res = component.render(document);
                 return { setList, res, document };
             },
             async ACT({ setList }) {
@@ -411,22 +411,22 @@ test.describe("For", (test, after) => {
                 assertHTML(document, res, getFragmentHTML([0, 1, 2, 1]));
             }
         });
-        test("should insert, swap and delete elements", {
+        test("should insert, swap and delete components", {
             ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
-                const element = new NesquickElement(For as any, {
+                const component = new NesquickComponent(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new NesquickElement("div", {
+                        return new NesquickComponent("div", {
                             children: [item]
                         })
                     }
                 });
                 const document = newDocument();
-                const res = element.render(document);
+                const res = component.render(document);
                 return { setList, res, document };
             },
             async ACT({ setList }) {
@@ -437,22 +437,22 @@ test.describe("For", (test, after) => {
                 assertHTML(document, res, getFragmentHTML([7, 8, 9, 10, 2, 6, 5, 4, 11]));
             }
         });
-        test("should update again after insert, swap and delete elements", {
+        test("should update again after insert, swap and delete components", {
             async ARRANGE() {
                 const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
-                const element = new NesquickElement(For as any, {
+                const component = new NesquickComponent(For as any, {
                     each: getList,
                     id(item:any) {
                         return item;
                     },
                     children(item:any) {
-                        return new NesquickElement("div", {
+                        return new NesquickComponent("div", {
                             children: [item]
                         })
                     }
                 });
                 const document = newDocument();
-                const res = element.render(document);
+                const res = component.render(document);
                 setList([7, 8, 9, 10, 2, 6, 5, 4, 11]);
                 await waitRenderTick();
                 return { setList, res, document };

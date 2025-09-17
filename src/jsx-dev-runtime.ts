@@ -1,5 +1,5 @@
 import { Fragment, jsx } from "./jsx-runtime";
-import { FunctionComponent, Props } from "./NesquickElement";
+import { FunctionComponent, ComponentProps } from "./NesquickComponent";
 export * from "./jsx-runtime";
 
 type JsxSource = {
@@ -7,6 +7,6 @@ type JsxSource = {
     lineNumber:number;
     columnNumber?:number;
 };
-export function jsxDEV<P extends Props>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key:string|number|null, _isStaticChildren:boolean, _source:JsxSource, _self:any) {
+export function jsxDEV<P extends ComponentProps>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key:string|number|null, _isStaticChildren:boolean, _source:JsxSource, _self:any) {
     return jsx(type, props, key);
 }

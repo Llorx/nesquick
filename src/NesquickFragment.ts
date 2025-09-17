@@ -1,8 +1,8 @@
 import { JSX } from "./jsx-runtime";
-import { NesquickElement, NesquickParent } from "./NesquickElement";
+import { NesquickComponent, NesquickParent } from "./NesquickComponent";
 
-// TODO: Test when deleting/inserting elements before/after rendering
-export class NesquickFragment extends NesquickElement<{children:any[]}> implements NesquickParent { // TODO: any
+// TODO: Test when deleting/inserting components before/after rendering
+export class NesquickFragment extends NesquickComponent<{children:any[]}> implements NesquickParent { // TODO: any
     private _lastNode:Node|null = null;
     private _fragment:Node|null = null;
     constructor(children:any[]) {
@@ -41,7 +41,7 @@ export class NesquickFragment extends NesquickElement<{children:any[]}> implemen
             parent.insertBefore(node, child || this._lastNode);
         }
     }
-    appendElement(child:JSX.Element) {
+    appendComponent(child:JSX.Element) {
         const document = this.getDocument();
         const parent = this.getParent();
         if (document && parent) {
@@ -51,16 +51,16 @@ export class NesquickFragment extends NesquickElement<{children:any[]}> implemen
             this.props.children.push(child);
         }
     }
-    swapElements(i1:number, i2:number) {
+    swapComponents(i1:number, i2:number) {
         const parent = this.getParent();
         if (parent) {
             this._swapChilds(parent, i1, i2);
         }
     }
-    removeElement(i:number) {
+    removeComponent(i:number) {
         this._removeChild(i);
     }
-    spliceElement(i:number, child:JSX.Element) {
+    spliceComponent(i:number, child:JSX.Element) {
         const document = this.getDocument();
         const parent = this.getParent();
         if (document && parent) {

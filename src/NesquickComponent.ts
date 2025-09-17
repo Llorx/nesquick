@@ -1,19 +1,19 @@
 import { subscriptions, Subscriptions, useRender } from "./State";
 
-export type Child = NesquickElement<any>|NesquickFragment|string|boolean|number|null|undefined|ChildFunc;
+export type Child = NesquickComponent<any>|NesquickFragment|string|boolean|number|null|undefined|ChildFunc;
 export type Children = Child|Child[];
 export type ChildFunc = () => Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[];
-export type Props = Record<string, any>;
+export type ComponentProps = Record<string, any>;
 
-export type FunctionComponent<P extends Props = {}> = (props:P) => NesquickElement<P>;
+export type FunctionComponent<P extends ComponentProps = {}> = (props:P) => NesquickComponent<P>;
 
 type NesquickChild = {
     node:Node|null;
 } & ({
-    element:NesquickElement|null;
+    component:NesquickComponent|null;
     fragment:null;
 } | {
-    element:null;
+    component:null;
     fragment:NesquickFragment|null;
 });
 
@@ -31,7 +31,7 @@ function functionizeProps(props:Record<string, any>) {
         }
     }
 }
-export class NesquickElement<P extends Props = {}> {
+export class NesquickComponent<P extends ComponentProps = {}> {
     private _subscriptions = new Subscriptions();
     protected _children:NesquickChild[] = [];
     constructor(private _render:string|FunctionComponent<P>, protected props:P) {
@@ -54,7 +54,7 @@ export class NesquickElement<P extends Props = {}> {
         subscriptions.reset();
         return element;
     }
-    private _renderProps(element:HTMLElement, props:Props) {
+    private _renderProps(element:HTMLElement, props:ComponentProps) {
         for (const k in props) {
             if (k !== "children") {
                 if (typeof props[k] === "function") {
@@ -78,7 +78,7 @@ export class NesquickElement<P extends Props = {}> {
                 children = [children];
             }
             for (const child of children) {
-                if (child instanceof NesquickElement) {
+                if (child instanceof NesquickComponent) {
                     this._renderChild(document, parent, this._pushChild(), child);
                 } else if (typeof child === "function") {
                     const ch = this._pushChild();
@@ -94,7 +94,7 @@ export class NesquickElement<P extends Props = {}> {
     protected _pushChild():NesquickChild {
         const nesquickChild:NesquickChild = {
             node: null,
-            element: null,
+            component: null,
             fragment: null
         };
         this._children.push(nesquickChild);
@@ -103,7 +103,7 @@ export class NesquickElement<P extends Props = {}> {
     protected _spliceChild(i:number):NesquickChild {
         const nesquickChild:NesquickChild = {
             node: null,
-            element: null,
+            component: null,
             fragment: null
         };
         this._children.splice(i, 0, nesquickChild);
@@ -133,21 +133,21 @@ export class NesquickElement<P extends Props = {}> {
             if (ch.node) {
                 ch.node.parentNode?.removeChild(ch.node);
             }
-            if (ch.element != null) {
-                ch.element.dispose();
+            if (ch.component != null) {
+                ch.component.dispose();
             } else if (ch.fragment != null) {
                 ch.fragment.dispose();
             }
         }
     }
     protected _renderChild(document:Document, parent:NesquickParent, nesquickChild:NesquickChild, child:Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[]) {
-        if (nesquickChild.element != null) {
-            nesquickChild.element.dispose();
+        if (nesquickChild.component != null) {
+            nesquickChild.component.dispose();
         } else if (nesquickChild.fragment != null) {
             nesquickChild.fragment.clear();
         }
         if (child instanceof NesquickFragment || Array.isArray(child)) {
-            nesquickChild.element = null;
+            nesquickChild.component = null;
             nesquickChild.fragment = Array.isArray(child) ? new NesquickFragment(child) : child;
             const node = nesquickChild.fragment.render(document);
             const lastChild = node.lastChild;
@@ -157,8 +157,8 @@ export class NesquickElement<P extends Props = {}> {
                 parent.appendChild(node);
             }
             nesquickChild.node = lastChild;
-        } else if (child instanceof NesquickElement) {
-            nesquickChild.element = child;
+        } else if (child instanceof NesquickComponent) {
+            nesquickChild.component = child;
             nesquickChild.fragment = null;
             const node = child.render(document);
             if (nesquickChild.node) {
@@ -169,8 +169,8 @@ export class NesquickElement<P extends Props = {}> {
             nesquickChild.node = node;
         } else {
             const value = child == null ? "" : String(child);
-            if (nesquickChild.node == null || nesquickChild.element != null || nesquickChild.fragment != null) {
-                nesquickChild.element = null;
+            if (nesquickChild.node == null || nesquickChild.component != null || nesquickChild.fragment != null) {
+                nesquickChild.component = null;
                 nesquickChild.fragment = null;
                 const node = document.createTextNode(value);
                 if (nesquickChild.node) {
@@ -187,8 +187,8 @@ export class NesquickElement<P extends Props = {}> {
     dispose() {
         this._subscriptions.dispose();
         for (const child of this._children) {
-            if (child.element) {
-                child.element.dispose();
+            if (child.component) {
+                child.component.dispose();
             }
         }
     }

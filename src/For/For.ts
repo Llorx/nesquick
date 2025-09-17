@@ -7,7 +7,7 @@ type ForChild = {
     id:unknown;
     i:number;
     setI:((i:number)=>void)|null;
-    element:JSX.Element;
+    component:JSX.Element;
     cycle:boolean;
     childs:ForChilds;
 };
@@ -16,8 +16,8 @@ type ForChilds = {
     offset:number;
     cycle:boolean;
 }
-type InitialForChild = Omit<ForChild, "element"|"childs"> & {
-    element:ForChild["element"]|null;
+type InitialForChild = Omit<ForChild, "component"|"childs"> & {
+    component:ForChild["component"]|null;
     childs:ForChild["childs"]|null;
 };
 type ChildRender<T> = (item:T, i:() => number) => JSX.Element;
@@ -42,7 +42,7 @@ function renderChild<T>(child:InitialForChild, item:T, render:ChildRender<T>) {
         child.setI = iState[1];
         return iState[0]();
     };
-    child.element = render(item, () => getI());
+    child.component = render(item, () => getI());
     return child as ForChild;
 };
 function getCycleMap<T>(props:Props<ForProps<T>>) {
@@ -120,17 +120,17 @@ export function For<T>(props:Props<ForProps<T>>) {
                     id: id,
                     i: i,
                     setI: null,
-                    element: null,
+                    component: null,
                     cycle: cycle,
                     childs: null
                 }, item, props.children);
                 map.pushChild(id, child);
                 children.push(child);
-                fragment.appendElement(child.element);
+                fragment.appendComponent(child.component);
             }
         } else if (each.length === 0) {
             for (let i = 0; i < children.length; i++) {
-                fragment.removeElement(i);
+                fragment.removeComponent(i);
             }
             map.clearChilds();
             children.splice(0);
@@ -158,7 +158,7 @@ export function For<T>(props:Props<ForProps<T>>) {
                     if (oldChild.cycle !== cycle) {
                         // if the old element is not existant in the new array
                         // remove it and repeat the loop
-                        fragment.removeElement(i);
+                        fragment.removeComponent(i);
                         children.splice(i--, 1);
                         map.popChild(oldChild);
                         if (children.length < each.length) {
@@ -174,11 +174,11 @@ export function For<T>(props:Props<ForProps<T>>) {
                                 id: id,
                                 i: i,
                                 setI: null,
-                                element: null,
+                                component: null,
                                 cycle: cycle,
                                 childs: null
                             }, item, props.children);
-                            fragment.spliceElement(i, child.element);
+                            fragment.spliceComponent(i, child.component);
                             map.pushChild(id, child);
                             children.splice(i, 0, child);
                             if (children.length <= each.length) {
@@ -192,7 +192,7 @@ export function For<T>(props:Props<ForProps<T>>) {
                             oldChild.i = child.i;
                             child.i = i;
                             child.setI?.(i);
-                            fragment.swapElements(oldChild.i + offset, child.i);
+                            fragment.swapComponents(oldChild.i + offset, child.i);
                         }
                     }
                 } else {
@@ -211,20 +211,20 @@ export function For<T>(props:Props<ForProps<T>>) {
                     id: id,
                     i: i,
                     setI: null,
-                    element: null,
+                    component: null,
                     cycle: cycle,
                     childs: null
                 }, item, props.children);
                 map.pushChild(id, child);
                 children.push(child);
-                fragment.appendElement(child.element);
+                fragment.appendComponent(child.component);
             }
             // delete old elements at the end of the old array
             // (from the end, for performance reasons)
             if (each.length < children.length) {
                 for (let i = children.length - 1; i >= each.length; i--) {
                     const oldChild = children[i];
-                    fragment.removeElement(i);
+                    fragment.removeComponent(i);
                     map.popChild(oldChild);
                 }
                 children.splice(each.length);

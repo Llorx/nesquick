@@ -4,12 +4,12 @@ import { setImmediate } from "timers/promises";
 import test from "arrange-act-assert";
 import { JSDOM } from "jsdom";
 
-import { NesquickElement } from "./NesquickElement";
+import { NesquickComponent } from "./NesquickComponent";
 import { useState } from "./State";
 
 // TODO: Test a Dispose
 // TODO: Add render NesquickFragment and render state NesquickFragment tests (from and to)
-test.describe("NesquickElement", (test, after) => {
+test.describe("NesquickComponent", (test, after) => {
     global.requestAnimationFrame = process.nextTick as any;
     after(null, () => global.requestAnimationFrame = undefined as any);
     function newDocument() {
@@ -26,12 +26,12 @@ test.describe("NesquickElement", (test, after) => {
         test.describe("different types", test => {
             test("should render div", {
                 ARRANGE() {
-                    const element = new NesquickElement("div", {});
+                    const component = new NesquickComponent("div", {});
                     const document = newDocument();
-                    return { element, document };
+                    return { component, document };
                 },
-                ACT({ element, document }) {
-                    return element.render(document);
+                ACT({ component, document }) {
+                    return component.render(document);
                 },
                 ASSERT(res, { document }) {
                     assertHTML(document, res, "<div></div>");
@@ -39,12 +39,12 @@ test.describe("NesquickElement", (test, after) => {
             });
             test("should render span", {
                 ARRANGE() {
-                    const element = new NesquickElement("span", {});
+                    const component = new NesquickComponent("span", {});
                     const document = newDocument();
-                    return { element, document };
+                    return { component, document };
                 },
-                ACT({ element, document }) {
-                    return element.render(document);
+                ACT({ component, document }) {
+                    return component.render(document);
                 },
                 ASSERT(res, { document }) {
                     assertHTML(document, res, "<span></span>");
@@ -52,12 +52,12 @@ test.describe("NesquickElement", (test, after) => {
             });
             test("should render input", {
                 ARRANGE() {
-                    const element = new NesquickElement("input", {});
+                    const component = new NesquickComponent("input", {});
                     const document = newDocument();
-                    return { element, document };
+                    return { component, document };
                 },
-                ACT({ element, document }) {
-                    return element.render(document);
+                ACT({ component, document }) {
+                    return component.render(document);
                 },
                 ASSERT(res, { document }) {
                     assertHTML(document, res, "<input>");
@@ -67,14 +67,14 @@ test.describe("NesquickElement", (test, after) => {
         test.describe("children", test => {
             test("should render text children", {
                 ARRANGE() {
-                    const element = new NesquickElement("div", {
+                    const component = new NesquickComponent("div", {
                         children: ["test1", "test2"]
                     });
                     const document = newDocument();
-                    return { element, document };
+                    return { component, document };
                 },
-                ACT({ element, document }) {
-                    return element.render(document);
+                ACT({ component, document }) {
+                    return component.render(document);
                 },
                 ASSERT(res, { document }) {
                     assertHTML(document, res, "<div>test1test2</div>");
@@ -82,29 +82,29 @@ test.describe("NesquickElement", (test, after) => {
             });
             test("should not render null children", {
                 ARRANGE() {
-                    const element = new NesquickElement("div", {
+                    const component = new NesquickComponent("div", {
                         children: ["test1", null, "test2"]
                     });
                     const document = newDocument();
-                    return { element, document };
+                    return { component, document };
                 },
-                ACT({ element, document }) {
-                    return element.render(document);
+                ACT({ component, document }) {
+                    return component.render(document);
                 },
                 ASSERT(res, { document }) {
                     assertHTML(document, res, "<div>test1test2</div>");
                 }
             });
-            test("should render NesquickElement children", {
+            test("should render NesquickComponent children", {
                 ARRANGE() {
-                    const element = new NesquickElement("div", {
-                        children: [new NesquickElement("span", {})]
+                    const component = new NesquickComponent("div", {
+                        children: [new NesquickComponent("span", {})]
                     });
                     const document = newDocument();
-                    return { element, document };
+                    return { component, document };
                 },
-                ACT({ element, document }) {
-                    return element.render(document);
+                ACT({ component, document }) {
+                    return component.render(document);
                 },
                 ASSERT(res, { document }) {
                     assertHTML(document, res, "<div><span></span></div>");
@@ -115,14 +115,14 @@ test.describe("NesquickElement", (test, after) => {
                     test("should render", {
                         ARRANGE() {
                             const [ getChild ] = useState("test2");
-                            const element = new NesquickElement("div", {
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            return { element, document };
+                            return { component, document };
                         },
-                        ACT({ element, document }) {
-                            return element.render(document);
+                        ACT({ component, document }) {
+                            return component.render(document);
                         },
                         ASSERT(res, { document }) {
                             assertHTML(document, res, "<div>test1test2test3</div>");
@@ -131,11 +131,11 @@ test.describe("NesquickElement", (test, after) => {
                     test("should update to single string", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState("test");
-                            const element = new NesquickElement("div", {
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -149,11 +149,11 @@ test.describe("NesquickElement", (test, after) => {
                     test("should update to array of strings", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState<string|string[]>("test");
-                            const element = new NesquickElement("div", {
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -164,18 +164,18 @@ test.describe("NesquickElement", (test, after) => {
                             assertHTML(document, div, "<div>test1test2test22<!--Fragment-->test3</div>");
                         }
                     });
-                    test("should update to NesquickElement", {
+                    test("should update to NesquickComponent", {
                         ARRANGE() {
-                            const [ getChild, setChild ] = useState<NesquickElement|string>("test2");
-                            const element = new NesquickElement("div", {
+                            const [ getChild, setChild ] = useState<NesquickComponent|string>("test2");
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
-                            setChild(new NesquickElement("div", {}));
+                            setChild(new NesquickComponent("div", {}));
                             await waitRenderTick();
                         },
                         ASSERT(_, { div, document }) {
@@ -185,11 +185,11 @@ test.describe("NesquickElement", (test, after) => {
                     test("should hide", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState<string|null>("test");
-                            const element = new NesquickElement("div", {
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test2"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -203,11 +203,11 @@ test.describe("NesquickElement", (test, after) => {
                     test("should show", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState<string|null>(null);
-                            const element = new NesquickElement("div", {
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -223,14 +223,14 @@ test.describe("NesquickElement", (test, after) => {
                     test("should render", {
                         ARRANGE() {
                             const [ getChild ] = useState(["test2", "test22"]);
-                            const element = new NesquickElement("div", {
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            return { element, document };
+                            return { component, document };
                         },
-                        ACT({ element, document }) {
-                            return element.render(document);
+                        ACT({ component, document }) {
+                            return component.render(document);
                         },
                         ASSERT(res, { document }) {
                             assertHTML(document, res, "<div>test1test2test22<!--Fragment-->test3</div>");
@@ -239,11 +239,11 @@ test.describe("NesquickElement", (test, after) => {
                     test("should update to single string", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState<string|string[]>(["test2", "test22"]);
-                            const element = new NesquickElement("div", {
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -257,11 +257,11 @@ test.describe("NesquickElement", (test, after) => {
                     test("should update to array of strings", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState(["test", "test0"]);
-                            const element = new NesquickElement("div", {
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -272,18 +272,18 @@ test.describe("NesquickElement", (test, after) => {
                             assertHTML(document, div, "<div>test1test2test22<!--Fragment-->test3</div>");
                         }
                     });
-                    test("should update to NesquickElement", {
+                    test("should update to NesquickComponent", {
                         ARRANGE() {
-                            const [ getChild, setChild ] = useState<NesquickElement|string[]>(["test", "test0"]);
-                            const element = new NesquickElement("div", {
+                            const [ getChild, setChild ] = useState<NesquickComponent|string[]>(["test", "test0"]);
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
-                            setChild(new NesquickElement("div", {}));
+                            setChild(new NesquickComponent("div", {}));
                             await waitRenderTick();
                         },
                         ASSERT(_, { div, document }) {
@@ -293,11 +293,11 @@ test.describe("NesquickElement", (test, after) => {
                     test("should hide", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState<string[]|null>(["test2", "test22"]);
-                            const element = new NesquickElement("div", {
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test2"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -311,11 +311,11 @@ test.describe("NesquickElement", (test, after) => {
                     test("should show", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState<string[]|null>(null);
-                            const element = new NesquickElement("div", {
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -327,18 +327,18 @@ test.describe("NesquickElement", (test, after) => {
                         }
                     });
                 });
-                test.describe("from NesquickElement", test => {
+                test.describe("from NesquickComponent", test => {
                     test("should render", {
                         ARRANGE() {
-                            const [ getChild ] = useState(new NesquickElement("span", {}));
-                            const element = new NesquickElement("div", {
+                            const [ getChild ] = useState(new NesquickComponent("span", {}));
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            return { element, document };
+                            return { component, document };
                         },
-                        ACT({ element, document }) {
-                            return element.render(document);
+                        ACT({ component, document }) {
+                            return component.render(document);
                         },
                         ASSERT(res, { document }) {
                             assertHTML(document, res, "<div>test1<span></span>test3</div>");
@@ -346,12 +346,12 @@ test.describe("NesquickElement", (test, after) => {
                     });
                     test("should update to single string", {
                         ARRANGE() {
-                            const [ getChild, setChild ] = useState<NesquickElement|string>(new NesquickElement("div", {}));
-                            const element = new NesquickElement("div", {
+                            const [ getChild, setChild ] = useState<NesquickComponent|string>(new NesquickComponent("div", {}));
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -364,12 +364,12 @@ test.describe("NesquickElement", (test, after) => {
                     });
                     test("should update to array of strings", {
                         ARRANGE() {
-                            const [ getChild, setChild ] = useState<NesquickElement|string[]>(new NesquickElement("div", {}));
-                            const element = new NesquickElement("div", {
+                            const [ getChild, setChild ] = useState<NesquickComponent|string[]>(new NesquickComponent("div", {}));
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -380,18 +380,18 @@ test.describe("NesquickElement", (test, after) => {
                             assertHTML(document, div, "<div>test1test2test22<!--Fragment-->test3</div>");
                         }
                     });
-                    test("should update to NesquickElement", {
+                    test("should update to NesquickComponent", {
                         ARRANGE() {
-                            const [ getChild, setChild ] = useState(new NesquickElement("span", {}));
-                            const element = new NesquickElement("div", {
+                            const [ getChild, setChild ] = useState(new NesquickComponent("span", {}));
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
-                            setChild(new NesquickElement("div", {}));
+                            setChild(new NesquickComponent("div", {}));
                             await waitRenderTick();
                         },
                         ASSERT(_, { div, document }) {
@@ -400,12 +400,12 @@ test.describe("NesquickElement", (test, after) => {
                     });
                     test("should hide", {
                         ARRANGE() {
-                            const [ getChild, setChild ] = useState<NesquickElement|null>(new NesquickElement("span", {}));
-                            const element = new NesquickElement("div", {
+                            const [ getChild, setChild ] = useState<NesquickComponent|null>(new NesquickComponent("span", {}));
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
@@ -418,16 +418,16 @@ test.describe("NesquickElement", (test, after) => {
                     });
                     test("should show", {
                         ARRANGE() {
-                            const [ getChild, setChild ] = useState<NesquickElement|null>(null);
-                            const element = new NesquickElement("div", {
+                            const [ getChild, setChild ] = useState<NesquickComponent|null>(null);
+                            const component = new NesquickComponent("div", {
                                 children: ["test1", getChild, "test3"]
                             });
                             const document = newDocument();
-                            const div = element.render(document);
+                            const div = component.render(document);
                             return { setChild, div, document };
                         },
                         async ACT({ setChild }) {
-                            setChild(new NesquickElement("div", {}));
+                            setChild(new NesquickComponent("div", {}));
                             await waitRenderTick();
                         },
                         ASSERT(_, { div, document }) {
@@ -444,16 +444,16 @@ test.describe("NesquickElement", (test, after) => {
                 const obj = {
                     ok: false
                 };
-                const element = new NesquickElement("div", {
+                const component = new NesquickComponent("div", {
                     onClick() {
                         obj.ok = true;
                     }
                 });
                 const document = newDocument();
-                return { element, document, obj };
+                return { component, document, obj };
             },
-            ACT({ element, document }) {
-                return element.render(document);
+            ACT({ component, document }) {
+                return component.render(document);
             },
             ASSERT(_, { obj }) {
                 Assert.strictEqual(obj.ok, false);
@@ -464,13 +464,13 @@ test.describe("NesquickElement", (test, after) => {
                 const obj = {
                     ok: false
                 };
-                const element = new NesquickElement("div", {
+                const component = new NesquickComponent("div", {
                     onClick() {
                         obj.ok = true;
                     }
                 });
                 const document = newDocument();
-                const node = element.render(document);
+                const node = component.render(document);
                 return { node, obj };
             },
             ACT({ node }) {

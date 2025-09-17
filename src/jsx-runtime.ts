@@ -1,15 +1,15 @@
-import { FunctionComponent, Props, NesquickElement } from "./NesquickElement";
+import { FunctionComponent, ComponentProps, NesquickComponent } from "./NesquickComponent";
 import { NesquickFragment } from "./NesquickFragment";
 
 export const Fragment = Symbol();
-export function jsxs<P extends Props>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null) {
+export function jsxs<P extends ComponentProps>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null) {
     if (type === Fragment) {
         return new NesquickFragment(props.children);
     }
     if (key !== undefined) {
         (props as any).key = key;
     }
-    return new NesquickElement(type, props);
+    return new NesquickComponent(type, props);
 }
 export const jsx = jsxs;
 
@@ -21,7 +21,7 @@ type UnFunction<T> = T extends {readonly [WrappedFunctionType]?:infer R} ? (T|R)
 type UserProps<T> = {
     [K in keyof T]:K extends "children" ? T[K] : UserProp<T[K]>;
 };
-type ComponentProps<T> = keyof T extends never ? {} : {
+type JSXProps<T> = keyof T extends never ? {} : {
     [K in keyof T]:K extends "children" ? UnFunction<T[K]> : ComponentProp<T[K]>;
 };
 export type Generic<T> = T extends (...args:any)=>infer R ? R : T;
@@ -40,7 +40,7 @@ export namespace JSX {
     export type SVGProps<T extends SVGElement = SVGElement> = Props<T>;
     export type JSXElements = {[K in keyof HTMLElementTagNameMap]:HTMLProps<HTMLElementTagNameMap[K]>}&{[K in keyof SVGElementTagNameMap]:SVGProps<SVGElementTagNameMap[K]>};
 
-    export type Element = NesquickElement<any>;
+    export type Element = NesquickComponent<any>;
     export interface IntrinsicElements extends JSXElements {
         // TODO: fragment
     }
@@ -48,7 +48,7 @@ export namespace JSX {
     export type ElementType =
         keyof IntrinsicElements |
         Component<any> |
-        typeof NesquickElement<any>;
+        typeof NesquickComponent<any>;
     
     declare const NotEmptyObject:unique symbol;
     export type IntrinsicAttributes = {
@@ -60,5 +60,5 @@ export namespace JSX {
     export interface ElementChildrenAttribute {
         children:{};
     }
-    export type LibraryManagedAttributes<_, P> = ComponentProps<P>;
+    export type LibraryManagedAttributes<_, P> = JSXProps<P>;
 }

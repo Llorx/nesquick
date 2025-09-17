@@ -3,4 +3,4 @@ export * from "./For/For";
 export * from "./cli/transformer";
 export * from "./State";
 export * from "./NesquickFragment";
-export * from "./NesquickElement";
+export * from "./NesquickComponent";

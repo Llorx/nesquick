@@ -1,11 +1,11 @@
-import { NesquickElement, Children, Child } from "./NesquickElement";
+import { NesquickComponent, Children, Child } from "./NesquickComponent";
 
 export namespace Nesquick {
-    export function render(element:NesquickElement<any>, parent?:HTMLElement|null) {
+    export function render(component:NesquickComponent<any>, parent?:HTMLElement|null) {
         if (parent != null) {
-            parent.appendChild(element.render(parent.ownerDocument));
+            parent.appendChild(component.render(parent.ownerDocument));
         } else {
-            document.body.appendChild(element.render(document));
+            document.body.appendChild(component.render(document));
         }
     }
 }
