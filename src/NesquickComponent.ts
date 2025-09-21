@@ -33,9 +33,18 @@ function functionizeProps(props:Record<string, any>) {
         }
     }
 }
+const SVGNamespaces = new Map([
+    ["xlink", "http://www.w3.org/1999/xlink"],
+    ["xml", "http://www.w3.org/XML/1998/namespace"]
+]);
+type XmlNs = {
+    ns:string;
+    attributes:Map<string, string>|null;
+};
+
 export class NesquickComponent<P extends ComponentProps = {}> {
     private _subscriptions = new Subscriptions();
-    private _xmlns:string|null = null;
+    private _xmlns:XmlNs|null = null;
     protected _children:NesquickChild[] = [];
     constructor(private _render:string|FunctionComponent<P>, protected props:P) {
         this.props = props;
@@ -46,33 +55,96 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             functionizeProps(this.props);
             const element = this._render(this.props);
             if (this._xmlns) {
-                element.inheritXmlns(this._xmlns);
+                element.setXmlns(this._xmlns);
             }
             const res = element.render(document);
             subscriptions.reset();
             return res;
         }
         if (this.props?.xmlns != null) {
-            if (typeof this.props.xmlns === "function") {
-                this._xmlns = this.props.xmlns();
-            } else {
-                this._xmlns = this.props.xmlns;
+            let namespace = typeof this.props.xmlns === "function" ? this.props.xmlns() : this.props.xmlns;
+            if (namespace != null) {
+                namespace = String(namespace);
+                this._xmlns = {
+                    ns: namespace,
+                    attributes: namespace === "http://www.w3.org/2000/svg" ? SVGNamespaces : null
+                };
             }
+        } else if (this._render === "svg") {
+            this._xmlns = {
+                ns: "http://www.w3.org/2000/svg",
+                attributes: SVGNamespaces
+            };
         }
-        const element = this._xmlns ? document.createElementNS(this._xmlns, this._render) : document.createElement(this._render);
-        if (this.props != null) {
-            this._renderProps(element, this.props);
+        let element;
+        if (this._xmlns?.ns) {
+            element = document.createElementNS(this._xmlns.ns, this._render);
+            if (this.props != null) {
+                if (this._xmlns.attributes) {
+                    this._renderPropsNs(this._xmlns.attributes, element, this.props);
+                } else {
+                    this._renderProps(element, this.props);
+                }
+            }
+        } else {
+            element = document.createElement(this._render);
+            if (this.props != null) {
+                this._renderProps(element, this.props);
+            }
         }
         this._renderChildren(document, element, this.props.children);
         this.props = {} as P; // GC unused properties
         subscriptions.reset();
         return element;
     }
-    inheritXmlns(xmlns:string|null) {
-        if (this.props?.xmlns != null) {
-            this._xmlns = xmlns;
-        }
+    setXmlns(xmlns:XmlNs|null) {
+        this._xmlns = xmlns;
     }
+    private _getAttributeNs(attributes:Map<string, string>, k:string) {
+        const index = k.indexOf(":");
+        if (index > -1) {
+            const ns = k.substring(0, index);
+            const name = k.substring(index + 1);
+            const namespace = attributes.get(ns);
+            if (namespace != null) {
+                return {
+                    namespace: namespace,
+                    name: name
+                };
+            }
+        }
+        return null;
+    }
+    private _renderPropsNs(attributes:Map<string, string>, element:Element, props:ComponentProps) {
+        for (const k in props) {
+            if (k !== "children" && k !== "xmlns") {
+                if (typeof props[k] === "function") {
+                    if (k.startsWith("on")) {
+                        // TODO: Validate events
+                        (element as any)[k.toLowerCase()] = props[k];
+                    } else {
+                        const attribute = this._getAttributeNs(attributes, k);
+                        if (attribute) {
+                            useRender(props[k], v => {
+                                element.setAttributeNS(attribute.namespace, attribute.name, String(v));
+                            });
+                        } else {
+                            useRender(props[k], v => {
+                                element.setAttribute(k, String(v));
+                            });
+                        }
+                    }
+                } else {
+                    const attribute = this._getAttributeNs(attributes, k);
+                    if (attribute) {
+                        element.setAttributeNS(attribute.namespace, attribute.name, String(props[k]));
+                    } else {
+                        element.setAttribute(k, String(props[k]));
+                    }
+                }
+            }
+        }
+    };
     private _renderProps(element:Element, props:ComponentProps) {
         for (const k in props) {
             if (k !== "children" && k !== "xmlns") {
@@ -169,7 +241,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             nesquickChild.component = null;
             nesquickChild.fragment = Array.isArray(child) ? new NesquickFragment(child) : child;
             if (this._xmlns) {
-                nesquickChild.fragment.inheritXmlns(this._xmlns);
+                nesquickChild.fragment.setXmlns(this._xmlns);
             }
             const node = nesquickChild.fragment.render(document);
             const lastChild = node.lastChild;
@@ -183,7 +255,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             nesquickChild.component = child;
             nesquickChild.fragment = null;
             if (this._xmlns) {
-                child.inheritXmlns(this._xmlns);
+                child.setXmlns(this._xmlns);
             }
             const node = child.render(document);
             if (nesquickChild.node) {
