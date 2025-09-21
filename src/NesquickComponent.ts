@@ -7,6 +7,8 @@ export type ComponentProps = Record<string, any>;
 
 export type FunctionComponent<P extends ComponentProps = {}> = (props:P) => NesquickComponent<P>;
 
+export type VeactDocument = Pick<Document, "createElement"|"createElementNS"|"createTextNode"|"createDocumentFragment"|"createComment">;
+
 type NesquickChild = {
     node:Node|null;
 } & ({
@@ -33,19 +35,31 @@ function functionizeProps(props:Record<string, any>) {
 }
 export class NesquickComponent<P extends ComponentProps = {}> {
     private _subscriptions = new Subscriptions();
+    private _xmlns:string|null = null;
     protected _children:NesquickChild[] = [];
     constructor(private _render:string|FunctionComponent<P>, protected props:P) {
         this.props = props;
     }
-    render(document:Document):Node {
+    render(document:VeactDocument):Node {
         subscriptions.set(this._subscriptions);
         if (typeof this._render === "function") {
             functionizeProps(this.props);
-            const res = this._render(this.props).render(document);
+            const element = this._render(this.props);
+            if (this._xmlns) {
+                element.inheritXmlns(this._xmlns);
+            }
+            const res = element.render(document);
             subscriptions.reset();
             return res;
         }
-        const element = document.createElement(this._render);
+        if (this.props?.xmlns != null) {
+            if (typeof this.props.xmlns === "function") {
+                this._xmlns = this.props.xmlns();
+            } else {
+                this._xmlns = this.props.xmlns;
+            }
+        }
+        const element = this._xmlns ? document.createElementNS(this._xmlns, this._render) : document.createElement(this._render);
         if (this.props != null) {
             this._renderProps(element, this.props);
         }
@@ -54,13 +68,18 @@ export class NesquickComponent<P extends ComponentProps = {}> {
         subscriptions.reset();
         return element;
     }
-    private _renderProps(element:HTMLElement, props:ComponentProps) {
+    inheritXmlns(xmlns:string|null) {
+        if (this.props?.xmlns != null) {
+            this._xmlns = xmlns;
+        }
+    }
+    private _renderProps(element:Element, props:ComponentProps) {
         for (const k in props) {
-            if (k !== "children") {
+            if (k !== "children" && k !== "xmlns") {
                 if (typeof props[k] === "function") {
                     if (k.startsWith("on")) {
                         // TODO: Validate events
-                        element[k.toLowerCase() as "onclick"] = props[k];
+                        (element as any)[k.toLowerCase()] = props[k];
                     } else {
                         useRender(props[k], v => {
                             element.setAttribute(k, String(v));
@@ -72,7 +91,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             }
         }
     }
-    protected _renderChildren(document:Document, parent:NesquickParent, children?:Children) {
+    protected _renderChildren(document:VeactDocument, parent:NesquickParent, children?:Children) {
         if (children != null) {
             if (!Array.isArray(children)) {
                 children = [children];
@@ -140,7 +159,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             }
         }
     }
-    protected _renderChild(document:Document, parent:NesquickParent, nesquickChild:NesquickChild, child:Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[]) {
+    protected _renderChild(document:VeactDocument, parent:NesquickParent, nesquickChild:NesquickChild, child:Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[]) {
         if (nesquickChild.component != null) {
             nesquickChild.component.dispose();
         } else if (nesquickChild.fragment != null) {
@@ -149,6 +168,9 @@ export class NesquickComponent<P extends ComponentProps = {}> {
         if (child instanceof NesquickFragment || Array.isArray(child)) {
             nesquickChild.component = null;
             nesquickChild.fragment = Array.isArray(child) ? new NesquickFragment(child) : child;
+            if (this._xmlns) {
+                nesquickChild.fragment.inheritXmlns(this._xmlns);
+            }
             const node = nesquickChild.fragment.render(document);
             const lastChild = node.lastChild;
             if (nesquickChild.node) {
@@ -160,6 +182,9 @@ export class NesquickComponent<P extends ComponentProps = {}> {
         } else if (child instanceof NesquickComponent) {
             nesquickChild.component = child;
             nesquickChild.fragment = null;
+            if (this._xmlns) {
+                child.inheritXmlns(this._xmlns);
+            }
             const node = child.render(document);
             if (nesquickChild.node) {
                 parent.replaceChild(node, nesquickChild.node);
