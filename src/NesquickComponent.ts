@@ -120,7 +120,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     }
     private _renderPropsNs(attributes:Map<string, string>, element:Element, props:ComponentProps) {
         for (const k in props) {
-            if (k !== "children" && k !== "xmlns") {
+            if (k !== "children" && k !== "xmlns" && k !== "ref") {
                 if (typeof props[k] === "function") {
                     if (k.startsWith("on")) {
                         // TODO: Validate events
