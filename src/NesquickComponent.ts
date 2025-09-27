@@ -61,7 +61,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             subscriptions.reset();
             return res;
         }
-        if (this.props?.xmlns != null) {
+        if (this.props.xmlns != null) {
             let namespace = typeof this.props.xmlns === "function" ? this.props.xmlns() : this.props.xmlns;
             if (namespace != null) {
                 namespace = String(namespace);
@@ -93,6 +93,9 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             }
         }
         this._renderChildren(document, element, this.props.children);
+        if (this.props.ref != null) {
+            this.props.ref(element);
+        }
         this.props = {} as P; // GC unused properties
         subscriptions.reset();
         return element;

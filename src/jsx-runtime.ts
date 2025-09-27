@@ -34,6 +34,7 @@ export namespace JSX {
         [k:string]:any;
         style?:StyleProps;
         xmlns?:string;
+        ref?:(el:T)=>void;
     }
     export type StyleProps = {[K in keyof CSSStyleDeclaration]?:CSSStyleDeclaration[K] extends Function ? never : CSSStyleDeclaration[K]|(()=>CSSStyleDeclaration[K])};
     export type HTMLProps<T extends HTMLElement = HTMLElement> = Props<T>;
