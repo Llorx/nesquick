@@ -1,7 +1,7 @@
 export type State<T> = [get:()=>T, set:(value:T)=>void];
 export type Subscription<T> = {
     cb:()=>T;
-    reaction:((data:T)=>void)|null;
+    reaction:((data:T, isState:boolean)=>void)|null;
     iteration:number;
     states:Map<Set<Subscription<any>>, number>;
     next:Subscription<T>|null;
@@ -92,10 +92,10 @@ export function useState<T>(value:T):State<T> {
     };
     return [ getValue, setValue ];
 }
-export function useEffect<T>(cb:()=>T, reaction:((data:T)=>void)|null = null) {
+export function useEffect<T>(cb:()=>T, reaction:((data:T, isState:boolean)=>void)|null = null) {
     newSubscription(cb, reaction, true);
 }
-export function useRender<T>(cb:()=>T, reaction:((data:T)=>void)|null = null) {
+export function useRender<T>(cb:()=>T, reaction:((data:T, isState:boolean)=>void)|null = null) {
     newSubscription(cb, reaction, false);
 }
 export function useDispose(cb:()=>void) {
@@ -104,7 +104,7 @@ export function useDispose(cb:()=>void) {
         container.onDispose.push(cb);
     }
 }
-function newSubscription<T>(cb:()=>T, reaction:((data:T)=>void)|null, effect:boolean) {
+function newSubscription<T>(cb:()=>T, reaction:((data:T, isState:boolean)=>void)|null, effect:boolean) {
     const sub:Subscription<T> = {
         cb: cb,
         reaction: reaction,
@@ -141,5 +141,5 @@ function runSubscription<T>(sub:Subscription<T>) {
             sub.states.delete(state);
         }
     }
-    sub.reaction?.(res);
+    sub.reaction?.(res, sub.states.size > 0);
 }

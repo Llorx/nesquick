@@ -6,6 +6,7 @@ import { JSDOM } from "jsdom";
 
 import { NesquickComponent } from "./NesquickComponent";
 import { useState } from "./State";
+import { JSX } from "./jsx-runtime";
 
 // TODO: Test a Dispose
 // TODO: Add render NesquickFragment and render state NesquickFragment tests (from and to)
@@ -23,6 +24,201 @@ test.describe("NesquickComponent", (test, after) => {
         Assert.strictEqual(document.body.innerHTML, html);
     }
     test.describe("render", test => {
+        test.describe("props", test => {
+            test("should render props", {
+                ARRANGE() {
+                    const component = new NesquickComponent("div", {
+                        id: "ok"
+                    });
+                    const document = newDocument();
+                    return { component, document };
+                },
+                ACT({ component, document }) {
+                    return component.render(document);
+                },
+                ASSERT(res, { document }) {
+                    assertHTML(document, res, `<div id="ok"></div>`);
+                }
+            });
+            test.describe("state", test => {
+                test("should update props", {
+                    ARRANGE() {
+                        const [ getId, setId ] = useState("ok");
+                        const component = new NesquickComponent("div", {
+                            id: getId
+                        });
+                        const document = newDocument();
+                        const res = component.render(document);
+                        return { setId, res, document };
+                    },
+                    async ACT({ setId }) {
+                        setId("ok2");
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { res, document }) {
+                        assertHTML(document, res, `<div id="ok2"></div>`);
+                    }
+                });
+            });
+        });
+        test.describe("style", test => {
+            test("should render string style", {
+                ARRANGE() {
+                    const component = new NesquickComponent("div", {
+                        style: "color: red;"
+                    });
+                    const document = newDocument();
+                    return { component, document };
+                },
+                ACT({ component, document }) {
+                    return component.render(document);
+                },
+                ASSERT(res, { document }) {
+                    assertHTML(document, res, `<div style="color: red;"></div>`);
+                }
+            });
+            test("should render object style", {
+                ARRANGE() {
+                    const component = new NesquickComponent("div", {
+                        style: {
+                            color: "red"
+                        }
+                    });
+                    const document = newDocument();
+                    return { component, document };
+                },
+                ACT({ component, document }) {
+                    return component.render(document);
+                },
+                ASSERT(res, { document }) {
+                    assertHTML(document, res, `<div style="color: red;"></div>`);
+                }
+            });
+            test.describe("state", test => {
+                test("should update string style", {
+                    ARRANGE() {
+                        const [ getColor, setColor ] = useState("red");
+                        const component = new NesquickComponent("div", {
+                            style: () => `color: ${getColor()};`
+                        });
+                        const document = newDocument();
+                        const res = component.render(document);
+                        return { setColor, res, document };
+                    },
+                    async ACT({ setColor }) {
+                        setColor("blue");
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { res, document }) {
+                    assertHTML(document, res, `<div style="color: blue;"></div>`);
+                    }
+                });
+                test("should update object style", {
+                    ARRANGE() {
+                        const [ getStyle, setStyle ] = useState({
+                            color: "red"
+                        });
+                        const component = new NesquickComponent("div", {
+                            style: getStyle
+                        });
+                        const document = newDocument();
+                        const res = component.render(document);
+                        return { setStyle, res, document };
+                    },
+                    async ACT({ setStyle }) {
+                        setStyle({
+                            color: "blue"
+                        });
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { res, document }) {
+                        assertHTML(document, res, `<div style="color: blue;"></div>`);
+                    }
+                });
+                test("should remove object style attributes", {
+                    ARRANGE() {
+                        const [ getStyle, setStyle ] = useState<JSX.StyleProps>({
+                            color: "red"
+                        });
+                        const component = new NesquickComponent("div", {
+                            style: getStyle
+                        });
+                        const document = newDocument();
+                        const res = component.render(document);
+                        return { setStyle, res, document };
+                    },
+                    async ACT({ setStyle }) {
+                        setStyle({
+                            backgroundColor: "blue"
+                        });
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { res, document }) {
+                        assertHTML(document, res, `<div style="background-color: blue;"></div>`);
+                    }
+                });
+                test("should switch from text to object", {
+                    ARRANGE() {
+                        const [ getStyle, setStyle ] = useState<JSX.StyleProps|string>("color: red;");
+                        const component = new NesquickComponent("div", {
+                            style: getStyle
+                        });
+                        const document = newDocument();
+                        const res = component.render(document);
+                        return { setStyle, res, document };
+                    },
+                    async ACT({ setStyle }) {
+                        setStyle({
+                            backgroundColor: "blue"
+                        });
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { res, document }) {
+                        assertHTML(document, res, `<div style="background-color: blue;"></div>`);
+                    }
+                });
+                test("should switch from object to text", {
+                    ARRANGE() {
+                        const [ getStyle, setStyle ] = useState<JSX.StyleProps|string>({
+                            color: "red"
+                        });
+                        const component = new NesquickComponent("div", {
+                            style: getStyle
+                        });
+                        const document = newDocument();
+                        const res = component.render(document);
+                        return { setStyle, res, document };
+                    },
+                    async ACT({ setStyle }) {
+                        setStyle("background-color: blue;");
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { res, document }) {
+                        assertHTML(document, res, `<div style="background-color: blue;"></div>`);
+                    }
+                });
+                test("should update single style properties", {
+                    ARRANGE() {
+                        const [ getColor, setColor ] = useState("red");
+                        const component = new NesquickComponent("div", {
+                            style: {
+                                color: getColor
+                            }
+                        });
+                        const document = newDocument();
+                        const res = component.render(document);
+                        return { setColor, res, document };
+                    },
+                    async ACT({ setColor }) {
+                        setColor("blue");
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { res, document }) {
+                        assertHTML(document, res, `<div style="color: blue;"></div>`);
+                    }
+                });
+            });
+        });
         test.describe("different types", test => {
             test("should render div", {
                 ARRANGE() {

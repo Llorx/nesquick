@@ -32,9 +32,9 @@ export namespace JSX {
     export type JSXSVGEvent<T extends EventTarget> = {[K in keyof SVGElementEventMap as `on${Capitalize<K>}`]?:(e:JSXEvent<SVGElementEventMap[K], T>) => void};
     export interface Props<T extends EventTarget = HTMLElement> extends JSXHTMLEvent<T>, JSXSVGEvent<T> {
         [k:string]:any;
-        style?:StyleProps;
-        xmlns?:string;
-        ref?:(el:T)=>void;
+        style?:StyleProps|string;
+        xmlns?:string|null;
+        ref?:((el:T)=>void)|null;
     }
     export type StyleProps = {[K in keyof CSSStyleDeclaration]?:CSSStyleDeclaration[K] extends Function ? never : CSSStyleDeclaration[K]|(()=>CSSStyleDeclaration[K])};
     export type HTMLProps<T extends HTMLElement = HTMLElement> = Props<T>;

@@ -44,6 +44,7 @@ type XmlNs = {
 
 export class NesquickComponent<P extends ComponentProps = {}> {
     private _subscriptions = new Subscriptions();
+    private _styleSubscriptions:Subscriptions|null = null;
     private _xmlns:XmlNs|null = null;
     protected _children:NesquickChild[] = [];
     constructor(private _render:string|FunctionComponent<P>, protected props:P) {
@@ -121,7 +122,9 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     private _renderPropsNs(attributes:Map<string, string>, element:Element, props:ComponentProps) {
         for (const k in props) {
             if (k !== "children" && k !== "xmlns" && k !== "ref") {
-                if (typeof props[k] === "function") {
+                if (k === "style") {
+                    this._renderStyle(element as HTMLElement, props[k]);
+                } else if (typeof props[k] === "function") {
                     if (k.startsWith("on")) {
                         // TODO: Validate events
                         (element as any)[k.toLowerCase()] = props[k];
@@ -151,7 +154,9 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     private _renderProps(element:Element, props:ComponentProps) {
         for (const k in props) {
             if (k !== "children" && k !== "xmlns" && k !== "ref") {
-                if (typeof props[k] === "function") {
+                if (k === "style") {
+                    this._renderStyle(element as HTMLElement, props[k]);
+                } else if (typeof props[k] === "function") {
                     if (k.startsWith("on")) {
                         // TODO: Validate events
                         (element as any)[k.toLowerCase()] = props[k];
@@ -163,6 +168,62 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                 } else {
                     element.setAttribute(k, String(props[k]));
                 }
+            }
+        }
+    }
+    private _renderStyles(element:HTMLElement, styles:JSX.StyleProps) {
+        for (const k in styles) {
+            if (typeof styles[k] === "function") {
+                useRender(styles[k], v => {
+                    element.style[k] = String(v);
+                });
+            } else {
+                element.style[k] = String(styles[k]);
+            }
+        }
+    }
+    private _renderStyle(element:HTMLElement, style:unknown) {
+        switch (typeof style) {
+            case "function": {
+                useRender(style as ()=>unknown, (style, isState) => {
+                    if (this._styleSubscriptions != null) {
+                        this._styleSubscriptions.dispose();
+                        this._styleSubscriptions = null;
+                    }
+                    switch (typeof style) {
+                        case "object": {
+                            if (style) {
+                                if (isState) {
+                                    element.removeAttribute("style");
+                                    this._styleSubscriptions = new Subscriptions();
+                                    subscriptions.set(this._styleSubscriptions);
+                                    this._renderStyles(element, style);
+                                    subscriptions.reset();
+                                } else {
+                                    this._renderStyles(element, style);
+                                }
+                            }
+                            break;
+                        }
+                        default: {
+                            element.setAttribute("style", String(style));
+                            break;
+                        }
+                    }
+                });
+                break;
+            }
+            case "object": {
+                if (style) {
+                    this._renderStyles(element, style);
+                } else {
+                    element.removeAttribute("style");
+                }
+                break;
+            }
+            default: {
+                element.setAttribute("style", String(style));
+                break;
             }
         }
     }
@@ -286,6 +347,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     }
     dispose() {
         this._subscriptions.dispose();
+        this._styleSubscriptions?.dispose();
         for (const child of this._children) {
             if (child.component) {
                 child.component.dispose();
@@ -296,3 +358,4 @@ export class NesquickComponent<P extends ComponentProps = {}> {
 
 // Cyclic dependency fix
 import { NesquickFragment } from "./NesquickFragment";
+import { JSX } from "./jsx-runtime";
