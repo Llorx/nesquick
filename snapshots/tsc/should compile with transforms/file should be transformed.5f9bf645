@@ -1,21 +1,20 @@
-ÿo"	validatedT"data"ˆ"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.component = component;
-function ok() {
+ÿo"	validatedT"data"´function ok() {
     return 123;
 }
 var pepe = {
     a: function () { return 123; }
 };
-function component() {
-    return ok("div", { asd: 123, asd2: ok, asd3: ok, asd4: function () { return pepe.a; }, asd5: function () { return pepe.a(); }, asd6: function () { return 123; }, asd7: 1 + 2, asd8: 1 === 1 ? 2 : 3, asd9: function () { return 1 === 1 ? 2 : ok; }, asd10: function () { return 1 + ok(); }, asd11: function () { return ok(); }, asd12: function () {
-            return ok();
-        }, asd13: function () {
-            return ok();
-        } },
-        "asd",
-        123,
-        function () { return ok() ? "ok" : null; },
-        (1 === 1) ? "ok" : null);
+function Comp(props) {
+    return ok(ok, null,
+        ok("div", { asd: 123, asd2: ok, asd3: ok, asd4: function () { return pepe.a; }, asd5: function () { return pepe.a(); }, asd6: function () { return 123; }, asd7: 1 + 2, asd8: 1 === 1 ? 2 : 3, asd9: function () { return 1 === 1 ? 2 : ok; }, asd10: function () { return 1 + ok(); }, asd11: function () { return ok(); }, asd12: function () {
+                return ok();
+            }, asd13: function () {
+                return ok();
+            }, asd14: "asd" },
+            "asd",
+            123,
+            function () { return ok() ? "ok" : null; },
+            (1 === 1) ? "ok" : null));
 }
+(ok(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; } }));
 {

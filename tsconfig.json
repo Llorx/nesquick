@@ -16,7 +16,7 @@
         "outDir": "./lib"
     },
     "include": [
-        "./src",
+        "./src/index.ts",
         "./src/jsx-runtime.ts",
         "./src/jsx-dev-runtime.ts",
         "./src/no-transformer/jsx-runtime.ts",

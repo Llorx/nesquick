@@ -5,7 +5,8 @@
         "declarationDir": "./lib/types",
         "outDir": "./lib",
         "jsx": "react",
-        "jsxFactory": "ok"
+        "jsxFactory": "ok",
+        "jsxFragmentFactory": "ok"
     },
     "include": [
         "src/index.ts"
