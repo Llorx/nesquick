@@ -1,4 +1,4 @@
-ÿo"	validatedT"data"´function ok() {
+ÿo"	validatedT"data"ßfunction ok() {
     return 123;
 }
 var pepe = {
@@ -6,15 +6,18 @@ var pepe = {
 };
 function Comp(props) {
     return ok(ok, null,
-        ok("div", { asd: 123, asd2: ok, asd3: ok, asd4: function () { return pepe.a; }, asd5: function () { return pepe.a(); }, asd6: function () { return 123; }, asd7: 1 + 2, asd8: 1 === 1 ? 2 : 3, asd9: function () { return 1 === 1 ? 2 : ok; }, asd10: function () { return 1 + ok(); }, asd11: function () { return ok(); }, asd12: function () {
+        ok("div", { a: function () { return props.a; }, b: function () { return props.b; }, "c-ref": function () { return props.c; }, "c-call": function () { return props.c(); }, expression: 123, "func-call": ok, "func-red": ok, "attr-ref": function () { return pepe.a; }, "attr-call": function () { return pepe.a(); }, "expression-call": function () { return 123; }, comp: 1 + 2, "simple-ternary": 1 === 1 ? 2 : 3, "ref-ternary": function () { return 1 === 1 ? 2 : ok; }, "comp-ref": function () { return 1 + ok(); }, "comp-call": function () { return ok(); }, arrow: function () {
                 return ok();
-            }, asd13: function () {
+            }, func: function () {
                 return ok();
-            }, asd14: "asd" },
+            }, "string-literal": "asd", "string-expression": "asd" },
+            function () { return props.d; },
+            function () { var _a; return (_a = props.e) === null || _a === void 0 ? void 0 : _a.call(props); },
             "asd",
             123,
             function () { return ok() ? "ok" : null; },
-            (1 === 1) ? "ok" : null));
+            (1 === 1) ? "ok" : null,
+            function () { return (1 === 1) ? ok : null; }));
 }
-(ok(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; } }));
+(ok(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; }, c: function () { return "asd"; }, d: function () { return ok(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; }, c: function () { return "asd"; } }); }, e: function () { return ok(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; }, c: function () { return "asd"; } }); } }));
 {

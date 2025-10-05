@@ -1,6 +1,6 @@
 import * as TS from "typescript";
 
-type NesquickVisitor = (node:TS.Node) => TS.Node;
+type NesquickVisitor = (node:TS.Node, options:{userComponent?:boolean, isJsxAttribute?:boolean}) => TS.Node;
 function getSingleIdentifier(node:TS.Node) {
     const identifiers:TS.Node[] = [];
     node.forEachChild(node => {
@@ -34,35 +34,43 @@ function hasIdentifier(node:TS.Node) {
 }
 export const transformer: TS.TransformerFactory<TS.SourceFile> = context => {
     return sourceFile => {
-        let isComponent = false;
-        const visitorGeneric:NesquickVisitor = node => {
-            if (TS.isJsxOpeningElement(node)) {
+        const visitGeneric:NesquickVisitor = (node, options) => {
+            if (TS.isJsxOpeningLikeElement(node)) {
                 const firstLetter = node.tagName.getText()[0];
-                isComponent = firstLetter !== firstLetter.toLowerCase();
+                const userComponent = firstLetter !== firstLetter.toLowerCase();
+                return TS.visitEachChild(node, node => visitGeneric(node, { userComponent }), context);
             }
-            if (TS.isJsxExpression(node)) {
-                return TS.visitEachChild(node, visitorExpression, context);
+            if (TS.isJsxAttribute(node)) {
+                return TS.visitEachChild(node, node => visitGeneric(node, { ...options, isJsxAttribute: true }), context);
+            } else if (TS.isJsxExpression(node)) {
+                return TS.visitEachChild(node, node => visitorExpression(node, { ...options, isJsxAttribute: false }), context);
+            } else if (options.isJsxAttribute && TS.isStringLiteral(node)) {
+                const returnNode = TS.visitNode(node, node => visitorExpression(node, { ...options, isJsxAttribute: false }));
+                if (TS.isExpression(returnNode)) {
+                    return TS.factory.createJsxExpression(undefined, returnNode);
+                }
+                return returnNode;
             }
-            return TS.visitEachChild(node, visitorGeneric, context);
+            return TS.visitEachChild(node, node => visitGeneric(node, { ...options, isJsxAttribute: false }), context);
         };
-        const visitorExpression:NesquickVisitor = node => {
+        const visitorExpression:NesquickVisitor = (node, options) => {
             if (TS.isParenthesizedExpression(node)) {
                 const body = getSingleBody(node);
                 if (body) {
-                    return TS.visitNode(body, visitorExpression, TS.isSourceFile);
+                    return TS.visitNode(body, node => visitorExpression(node, options));
                 }
             } else if (TS.isCallExpression(node)) {
                 const identifier = getSingleIdentifier(node);
                 if (identifier) {
                     return identifier;
                 } else {
-                    return TS.factory.createArrowFunction(undefined, undefined, [], undefined, TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken), node);
+                    return TS.factory.createArrowFunction(undefined, undefined, [], undefined, TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken), TS.visitNode(node, node => visitGeneric(node, {}), TS.isConciseBody));
                 }
-            } else if (!TS.isFunctionLike(node) && TS.isExpression(node) && (isComponent || hasIdentifier(node))) {
-                return TS.factory.createArrowFunction(undefined, undefined, [], undefined, TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken), node);
+            } else if (!TS.isFunctionLike(node) && TS.isExpression(node) && (options.userComponent || hasIdentifier(node))) {
+                return TS.factory.createArrowFunction(undefined, undefined, [], undefined, TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken), TS.visitNode(node, node => visitGeneric(node, {}), TS.isConciseBody));
             }
-            return node;
+            return TS.visitNode(node, node => visitGeneric(node, {}));
         };
-        return TS.visitNode(sourceFile, visitorGeneric, TS.isSourceFile);
+        return TS.visitNode(sourceFile, node => visitGeneric(node, {}), TS.isSourceFile);
     };
 };

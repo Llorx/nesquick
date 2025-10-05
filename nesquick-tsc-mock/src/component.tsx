@@ -4,33 +4,47 @@ function ok() {
 const pepe = {
     a: () => 123
 };
-function Comp(props:{a:string, b:()=>string}) {
+function Comp(props:{a:string, b:string, c:()=>string, d?:any, e?:() => any}) {
     return <>
         <div
-            asd={123}
-            asd2={ok()}
-            asd3={ok}
-            asd4={pepe.a}
-            asd5={pepe.a()}
-            asd6={() => 123}
-            asd7={1 + 2}
-            asd8={1 === 1 ? 2 : 3}
-            asd9={1 === 1 ? 2 : ok}
-            asd10={1 + ok()}
-            asd11={() => ok()}
-            asd12={() => {
+            a={props.a}
+            b={props.b}
+            c-ref={props.c}
+            c-call={props.c()}
+            expression={123}
+            func-call={ok()}
+            func-red={ok}
+            attr-ref={pepe.a}
+            attr-call={pepe.a()}
+            expression-call={() => 123}
+            comp={1 + 2}
+            simple-ternary={1 === 1 ? 2 : 3}
+            ref-ternary={1 === 1 ? 2 : ok}
+            comp-ref={1 + ok()}
+            comp-call={() => ok()}
+            arrow={() => {
                 return ok();
             }}
-            asd13={function() {
+            func={function() {
                 return ok();
             }}
-            asd14="asd"
+            string-literal="asd"
+            string-expression={"asd"}
         >
+            {props.d}
+            {props.e?.()}
             {"asd"}
             {123}
             {ok() ? "ok": null}
             {(1===1) ? "ok": null}
+            {(1===1) ? ok: null}
         </div>
     </>;
 }
-(<Comp a={"asd"} b={() => "asd"}></Comp>);
+(<Comp
+    a="asd"
+    b={"asd"}
+    c={() => "asd"}
+    d={<Comp a="asd" b={"asd"} c={() => "asd"}></Comp>}
+    e={() => <Comp a="asd" b={"asd"} c={() => "asd"}></Comp>}
+></Comp>);
