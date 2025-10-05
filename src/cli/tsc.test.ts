@@ -1,5 +1,6 @@
 import * as Fs from "fs";
 import * as Path from "path";
+import { execSync } from "child_process";
 
 import test, { monad } from "arrange-act-assert";
 
@@ -17,6 +18,9 @@ test.describe("tsc", test => {
             try {
                 await clearPath(libPath);
             } catch (_) {}
+            execSync("npm ci", {
+                cwd: mockPath
+            });
             return { mockPath };
         },
         ACT({ mockPath }) {
