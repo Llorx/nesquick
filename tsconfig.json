@@ -12,12 +12,15 @@
         "declaration": true,
         "declarationDir": "./lib/types",
         "inlineSourceMap": true,
+        "exactOptionalPropertyTypes": true,
         "outDir": "./lib"
     },
     "include": [
         "./src",
         "./src/jsx-runtime.ts",
         "./src/jsx-dev-runtime.ts",
+        "./src/no-transformer/jsx-runtime.ts",
+        "./src/no-transformer/jsx-dev-runtime.ts",
         "./src/cli/nesquick-tsc.ts",
         "./src/**/*.test.ts"
     ]

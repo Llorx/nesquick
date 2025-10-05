@@ -25,14 +25,6 @@ export type NesquickParent = {
     insertBefore(node:Node, child:Node|null):void;
 }
 
-function functionizeProps(props:Record<string, any>) {
-    for (const k in props) {
-        if (typeof props[k] !== "function") {
-            const v = props[k];
-            props[k] = () => v;
-        }
-    }
-}
 const SVGNamespaces = new Map([
     ["xlink", "http://www.w3.org/1999/xlink"],
     ["xml", "http://www.w3.org/XML/1998/namespace"]
@@ -53,7 +45,6 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     render(document:VeactDocument):Node {
         subscriptions.set(this._subscriptions);
         if (typeof this._render === "function") {
-            functionizeProps(this.props);
             const element = this._render(this.props);
             if (this._xmlns) {
                 element.setXmlns(this._xmlns);

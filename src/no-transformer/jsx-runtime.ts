@@ -1,12 +1,22 @@
-import { FunctionComponent, ComponentProps, NesquickComponent } from "./NesquickComponent";
-import { NesquickFragment } from "./NesquickFragment";
+import { FunctionComponent, ComponentProps, NesquickComponent } from "../NesquickComponent";
+import { NesquickFragment } from "../NesquickFragment";
 
 export const Fragment = Symbol();
+function functionizeProps(props:Record<string, any>) {
+    for (const k in props) {
+        if (typeof props[k] !== "function") {
+            const v = props[k];
+            props[k] = () => v;
+        }
+    }
+}
 export function jsxs<P extends ComponentProps>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null) {
     if (type === Fragment) {
         return new NesquickFragment(props.children);
     }
-    if (key !== undefined) {
+    if (typeof type !== "string") {
+        functionizeProps(props);
+    } else if (key !== undefined) {
         (props as any).key = key;
     }
     return new NesquickComponent(type, props);
@@ -18,11 +28,11 @@ type HasUndefined<T, K extends keyof T> = {[L in K]-?:T[K]|undefined} extends {[
 
 declare const WrappedFunctionType:unique symbol;
 type WrappedFunction<T> = (() => T) & {readonly [WrappedFunctionType]?:T};
-type UserProp<T> = T extends (...args:any[])=>any ? T : WrappedFunction<T>;
+type UserProp<T> = T extends (...args:infer A)=>infer R ? (((...args:A)=>R)|T) : WrappedFunction<T>;
 type UserProps<T> = {
     readonly [K in keyof T]:HasUndefined<T, K> extends true ? UserProp<T[K] | undefined> : UserProp<Exclude<T[K], undefined>>;
 };
-type JSXProp<T> = T extends {readonly [WrappedFunctionType]?:infer R} ? R : T;
+type JSXProp<T> = T extends {readonly [WrappedFunctionType]?:infer R} ? (T|R) : T extends (...args: any[]) => any ? T : (T|(() => T));
 type JSXProps<T> = keyof T extends never ? {} : {
     [K in keyof T]:JSXProp<T[K]>;
 };
@@ -43,9 +53,12 @@ export namespace JSX {
     export type StyleProps = {[K in keyof CSSStyleDeclaration]?:CSSStyleDeclaration[K] extends Function ? never : CSSStyleDeclaration[K]|(()=>CSSStyleDeclaration[K])};
     export type HTMLProps<T extends HTMLElement = HTMLElement> = Props<T>;
     export type SVGProps<T extends SVGElement = SVGElement> = Props<T>;
-    export type IntrinsicElements = {[K in keyof HTMLElementTagNameMap]:HTMLProps<HTMLElementTagNameMap[K]>}&{[K in keyof SVGElementTagNameMap]:SVGProps<SVGElementTagNameMap[K]>};
+    export type JSXElements = {[K in keyof HTMLElementTagNameMap]:HTMLProps<HTMLElementTagNameMap[K]>}&{[K in keyof SVGElementTagNameMap]:SVGProps<SVGElementTagNameMap[K]>};
 
     export type Element = NesquickComponent<any>;
+    export interface IntrinsicElements extends JSXElements {
+        // TODO: fragment
+    }
 
     export type ElementType =
         keyof IntrinsicElements |
