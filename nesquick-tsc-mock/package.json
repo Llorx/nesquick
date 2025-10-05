@@ -1,0 +1,10 @@
+{
+  "name": "nesquick-tsc-mock",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+    "nesquick": "file:.."
+  },
+  "author": "Llorx",
+  "license": "ISC"
+}

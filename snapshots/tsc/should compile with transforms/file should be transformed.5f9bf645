@@ -1,23 +1,20 @@
-ÿo"	validatedT"data"ßfunction ok() {
+ÿo"	validatedT"data"›"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var jsx_runtime_1 = require("nesquick/jsx-runtime");
+function ok() {
     return 123;
 }
 var pepe = {
     a: function () { return 123; }
 };
 function Comp(props) {
-    return ok(ok, null,
-        ok("div", { a: function () { return props.a; }, b: function () { return props.b; }, "c-ref": function () { return props.c; }, "c-call": function () { return props.c(); }, expression: 123, "func-call": ok, "func-red": ok, "attr-ref": function () { return pepe.a; }, "attr-call": function () { return pepe.a(); }, "expression-call": function () { return 123; }, comp: 1 + 2, "simple-ternary": 1 === 1 ? 2 : 3, "ref-ternary": function () { return 1 === 1 ? 2 : ok; }, "comp-ref": function () { return 1 + ok(); }, "comp-call": function () { return ok(); }, arrow: function () {
+    return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, { children: (0, jsx_runtime_1.jsxs)("div", { a: function () { return props.a; }, b: function () { return props.b; }, "c-ref": function () { return props.c; }, "c-call": function () { return props.c(); }, expression: 123, "func-call": ok, "func-red": ok, "attr-ref": function () { return pepe.a; }, "attr-call": function () { return pepe.a(); }, "expression-call": function () { return 123; }, comp: 1 + 2, "simple-ternary": 1 === 1 ? 2 : 3, "ref-ternary": function () { return 1 === 1 ? 2 : ok; }, "comp-ref": function () { return 1 + ok(); }, "comp-call": function () { return ok(); }, arrow: function () {
                 return ok();
             }, func: function () {
                 return ok();
-            }, "string-literal": "asd", "string-expression": "asd" },
-            function () { return props.d; },
-            function () { var _a; return (_a = props.e) === null || _a === void 0 ? void 0 : _a.call(props); },
-            "asd",
-            123,
-            function () { return ok() ? "ok" : null; },
-            (1 === 1) ? "ok" : null,
-            function () { return (1 === 1) ? ok : null; }));
+            }, "string-literal": "asd", "string-expression": "asd", children: [function () { return props.d; }, function () { var _a; return (_a = props.e) === null || _a === void 0 ? void 0 : _a.call(props); }, "asd", 123, function () { return ok() ? "ok" : null; }, (1 === 1) ? "ok" : null, function () { return (1 === 1) ? ok : null; }] }) });
 }
-(ok(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; }, c: function () { return "asd"; }, d: function () { return ok(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; }, c: function () { return "asd"; } }); }, e: function () { return ok(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; }, c: function () { return "asd"; } }); } }));
+((0, jsx_runtime_1.jsxs)(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; }, c: function () { return "asd"; }, d: function () {
+        return (0, jsx_runtime_1.jsx)(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; }, c: function () { return "asd"; }, children: function () { return (0, jsx_runtime_1.jsx)("span", {}); } });
+    }, e: function () { return (0, jsx_runtime_1.jsx)(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; }, c: function () { return "asd"; } }); }, children: [(0, jsx_runtime_1.jsx)("span", { children: (0, jsx_runtime_1.jsx)(Comp, { a: function () { return "asd"; }, b: function () { return "asd"; }, c: function () { return "asd"; } }) }), function () { return (0, jsx_runtime_1.jsx)("div", {}); }, function () { return (0, jsx_runtime_1.jsx)("a", {}); }] }));
 {

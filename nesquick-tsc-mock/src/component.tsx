@@ -4,7 +4,7 @@ function ok() {
 const pepe = {
     a: () => 123
 };
-function Comp(props:{a:string, b:string, c:()=>string, d?:any, e?:() => any}) {
+function Comp(props:{children?:any, a:string, b:string, c:()=>string, d?:any, e?:() => any}) {
     return <>
         <div
             a={props.a}
@@ -45,6 +45,14 @@ function Comp(props:{a:string, b:string, c:()=>string, d?:any, e?:() => any}) {
     a="asd"
     b={"asd"}
     c={() => "asd"}
-    d={<Comp a="asd" b={"asd"} c={() => "asd"}></Comp>}
-    e={() => <Comp a="asd" b={"asd"} c={() => "asd"}></Comp>}
-></Comp>);
+    d={<Comp a="asd" b={"asd"} c={() => "asd"}>
+        {() => <span></span>}
+    </Comp>}
+    e={() => <Comp a="asd" b={"asd"} c={() => "asd"} />}
+>
+    <span>
+        <Comp a="asd" b={"asd"} c={() => "asd"} />
+    </span>
+    {<div></div>}
+    {() => <a></a>}
+</Comp>);

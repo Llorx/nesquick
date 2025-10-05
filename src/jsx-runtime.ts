@@ -20,7 +20,7 @@ declare const WrappedFunctionType:unique symbol;
 type WrappedFunction<T> = (() => T) & {readonly [WrappedFunctionType]?:T};
 type UserProp<T> = T extends (...args:any[])=>any ? T : WrappedFunction<T>;
 type UserProps<T> = {
-    readonly [K in keyof T]:HasUndefined<T, K> extends true ? UserProp<T[K] | undefined> : UserProp<Exclude<T[K], undefined>>;
+    readonly [K in keyof T]:K extends keyof JSX.ElementChildrenAttribute ? T[K] : HasUndefined<T, K> extends true ? UserProp<T[K] | undefined> : UserProp<Exclude<T[K], undefined>>;
 };
 type JSXProp<T> = T extends {readonly [WrappedFunctionType]?:infer R} ? R : T;
 type JSXProps<T> = keyof T extends never ? {} : {

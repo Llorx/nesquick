@@ -4,9 +4,9 @@
         "lib": ["ESNext"],
         "declarationDir": "./lib/types",
         "outDir": "./lib",
-        "jsx": "react",
-        "jsxFactory": "ok",
-        "jsxFragmentFactory": "ok"
+        "jsx": "react-jsx",
+        "exactOptionalPropertyTypes": false,
+        "jsxImportSource": "nesquick"
     },
     "include": [
         "src/index.ts"

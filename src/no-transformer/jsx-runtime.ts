@@ -1,10 +1,12 @@
+// TODO: Dedupe
+
 import { FunctionComponent, ComponentProps, NesquickComponent } from "../NesquickComponent";
 import { NesquickFragment } from "../NesquickFragment";
 
 export const Fragment = Symbol();
 function functionizeProps(props:Record<string, any>) {
     for (const k in props) {
-        if (typeof props[k] !== "function") {
+        if (k !== "children" && typeof props[k] !== "function") {
             const v = props[k];
             props[k] = () => v;
         }
@@ -30,7 +32,7 @@ declare const WrappedFunctionType:unique symbol;
 type WrappedFunction<T> = (() => T) & {readonly [WrappedFunctionType]?:T};
 type UserProp<T> = T extends (...args:infer A)=>infer R ? (((...args:A)=>R)|T) : WrappedFunction<T>;
 type UserProps<T> = {
-    readonly [K in keyof T]:HasUndefined<T, K> extends true ? UserProp<T[K] | undefined> : UserProp<Exclude<T[K], undefined>>;
+    readonly [K in keyof T]:K extends keyof JSX.ElementChildrenAttribute ? T[K] : HasUndefined<T, K> extends true ? UserProp<T[K] | undefined> : UserProp<Exclude<T[K], undefined>>;
 };
 type JSXProp<T> = T extends {readonly [WrappedFunctionType]?:infer R} ? (T|R) : T extends (...args: any[]) => any ? T : (T|(() => T));
 type JSXProps<T> = keyof T extends never ? {} : {
