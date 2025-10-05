@@ -45,8 +45,8 @@ export const transformer: TS.TransformerFactory<TS.SourceFile> = context => {
             } else if (TS.isJsxExpression(node)) {
                 return TS.visitEachChild(node, node => visitorExpression(node, { ...options, isJsxAttribute: false }), context);
             } else if (options.isJsxAttribute && TS.isStringLiteral(node)) {
-                const returnNode = TS.visitNode(node, node => visitorExpression(node, { ...options, isJsxAttribute: false }));
-                if (TS.isExpression(returnNode)) {
+                const returnNode = TS.visitNode(node, node => visitorExpression(node, { ...options, isJsxAttribute: false }), TS.isExpression);
+                if (!TS.isStringLiteral(returnNode)) {
                     return TS.factory.createJsxExpression(undefined, returnNode);
                 }
                 return returnNode;
