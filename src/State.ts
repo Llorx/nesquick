@@ -1,4 +1,6 @@
-export type State<T> = [get:()=>T, set:(value:T)=>void];
+export type Getter<T> = () => T;
+export type Setter<T> = (value:T) => void;
+export type State<T> = [get:Getter<T>, set:Setter<T>];
 export type Subscription<T> = {
     cb:()=>T;
     reaction:((data:T, isState:boolean)=>void)|null;

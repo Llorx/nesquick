@@ -4,7 +4,7 @@ import { FunctionComponent, ComponentProps, NesquickComponent } from "../Nesquic
 import { NesquickFragment } from "../NesquickFragment";
 
 export const Fragment = Symbol();
-function functionizeProps(props:Record<string, any>) {
+export function functionizeProps(props:ComponentProps) {
     for (const k in props) {
         if (k !== "children" && typeof props[k] !== "function") {
             const v = props[k];
