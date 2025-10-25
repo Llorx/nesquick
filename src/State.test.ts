@@ -47,8 +47,19 @@ test.describe("State", (test, after) => {
         ACT([_, setValue]) {
             setValue(1);
         },
-        ASSERT(_, [getValue]) {
+        ASSERT(_, [ getValue ]) {
             Assert.strictEqual(getValue(), 1);
+        }
+    });
+    test("should update a state when uset getset", {
+        ARRANGE() {
+            return State.useState(1);
+        },
+        ACT([_, _2, getSetValue]) {
+            getSetValue(v => v + 1);
+        },
+        ASSERT(_, [ getValue ]) {
+            Assert.strictEqual(getValue(), 2);
         }
     });
     test("should register a subscription if a state was accessed", {

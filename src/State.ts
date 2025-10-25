@@ -1,6 +1,7 @@
 export type Getter<T> = () => T;
 export type Setter<T> = (value:T) => void;
-export type State<T> = [get:Getter<T>, set:Setter<T>];
+export type GetterSetter<T> = (cb:(value:T)=>T) => void;
+export type State<T> = [get:Getter<T>, set:Setter<T>, getSet:GetterSetter<T>];
 type Subscription<T> = {
     cb:()=>T;
     iteration:number;
@@ -81,7 +82,7 @@ export namespace subscriptions {
 }
 export function useState<T>(value:T):State<T> {
     const reactors = new Set<Subscription<T>>();
-    const getValue = () => {
+    function getValue() {
         const reactor = currentReactor[currentReactor.length - 1];
         if (reactor) {
             reactors.add(reactor);
@@ -89,7 +90,7 @@ export function useState<T>(value:T):State<T> {
         }
         return value;
     };
-    const setValue = (newValue:T) => {
+    function setValue(newValue:T) {
         if (value !== newValue) {
             value = newValue;
             for (const reactor of reactors) {
@@ -97,7 +98,9 @@ export function useState<T>(value:T):State<T> {
             }
         }
     };
-    return [ getValue, setValue ];
+    return [ getValue, setValue, cb => { // getSet
+        setValue(cb(value));
+    }];
 }
 export function useEffect<T>(cb:()=>T, reaction:((data:T, lastReaction:boolean)=>void)|null = null) {
     const sub = newSubscription(cb, reaction, true);
