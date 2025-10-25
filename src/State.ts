@@ -1,10 +1,12 @@
 export type Getter<T> = () => T;
 export type Setter<T> = (value:T) => void;
 export type State<T> = [get:Getter<T>, set:Setter<T>];
-export type Subscription<T> = {
+type Subscription<T> = {
     cb:()=>T;
-    reaction:((data:T, isState:boolean)=>void)|null;
     iteration:number;
+    lastValue:T|null;
+    firstRun:boolean;
+    reaction:((data:T, lastReaction:boolean)=>void)|null;
     states:Map<Set<Subscription<any>>, number>;
     next:Subscription<T>|null;
     effect:boolean;
@@ -43,6 +45,7 @@ function renderReactor(reactor:Subscription<any>, instant:boolean) {
     }
 }
 function renderReactors() {
+    // '!' So we can optimize do/while instead of using just while
     let next = pendingReactor!.first;
     do {
         if (!next.cancelled) {
@@ -50,7 +53,7 @@ function renderReactors() {
         }
         const n = next.next;
         next.next = null;
-        next = n!; // ! So we can optimize do/while instead of using just while
+        next = n!;
     } while (next);
     pendingReactor = null;
 }
@@ -87,18 +90,61 @@ export function useState<T>(value:T):State<T> {
         return value;
     };
     const setValue = (newValue:T) => {
-        value = newValue;
-        for (const reactor of reactors) {
-            renderReactor(reactor, reactor.effect);
+        if (value !== newValue) {
+            value = newValue;
+            for (const reactor of reactors) {
+                renderReactor(reactor, reactor.effect);
+            }
         }
     };
     return [ getValue, setValue ];
 }
-export function useEffect<T>(cb:()=>T, reaction:((data:T, isState:boolean)=>void)|null = null) {
-    newSubscription(cb, reaction, true);
+export function useEffect<T>(cb:()=>T, reaction:((data:T, lastReaction:boolean)=>void)|null = null) {
+    const sub = newSubscription(cb, reaction, true);
+    runSubscription(sub);
 }
-export function useRender<T>(cb:()=>T, reaction:((data:T, isState:boolean)=>void)|null = null) {
-    newSubscription(cb, reaction, false);
+export function useRender<T>(cb:()=>T, reaction:((data:T, lastReaction:boolean)=>void)|null = null) {
+    const sub = newSubscription(cb, reaction, false);
+    runSubscription(sub);
+}
+const enum MemoState {
+    NOTIFIED,
+    DIRTY,
+    CLEAN
+}
+export function useMemo<T>(cb:()=>T):Getter<T> {
+    const reactors = new Set<Subscription<T>>();
+    let state = MemoState.NOTIFIED;
+    let value:T;
+    const sub = newSubscription(() => {
+        if (state === MemoState.NOTIFIED) {
+            // keep states like cb was called again
+            sub.iteration--;
+        } else if (state === MemoState.DIRTY) {
+            state = MemoState.CLEAN;
+            value = cb();
+        } else {
+            sub.iteration--;
+            state = MemoState.NOTIFIED;
+            for (const reactor of reactors) {
+                renderReactor(reactor, reactor.effect);
+            }
+        }
+    }, null, true);
+    return () => {
+        if (state === MemoState.NOTIFIED) {
+            state = MemoState.DIRTY;
+            runSubscription(sub);
+        }
+        if (!sub.cancelled) {
+            const reactor = currentReactor[currentReactor.length - 1];
+            if (reactor) {
+                reactors.add(reactor);
+                reactor.states.set(reactors, reactor.iteration);
+            }
+        }
+        return value;
+    };
 }
 export function useDispose(cb:()=>void) {
     const container = currentSubscriptions[currentSubscriptions.length - 1];
@@ -106,9 +152,11 @@ export function useDispose(cb:()=>void) {
         container.onDispose.push(cb);
     }
 }
-function newSubscription<T>(cb:()=>T, reaction:((data:T, isState:boolean)=>void)|null, effect:boolean) {
-    const sub:Subscription<T> = {
+function newSubscription<T>(cb:()=>T, reaction:((data:T, lastReaction:boolean)=>void)|null, effect:boolean):Subscription<T> {
+    return {
         cb: cb,
+        firstRun: true,
+        lastValue: null,
         reaction: reaction,
         iteration: 0,
         states: new Map(),
@@ -117,15 +165,6 @@ function newSubscription<T>(cb:()=>T, reaction:((data:T, isState:boolean)=>void)
         cancelled: false,
         pending: false
     };
-    renderReactor(sub, true);
-    if (sub.states.size === 0) {
-        cancelSubscription(sub);
-    } else {
-        const container = currentSubscriptions[currentSubscriptions.length - 1];
-        if (container) {
-            container.list.push(sub);
-        }
-    }
 }
 function cancelSubscription(sub:Subscription<any>) {
     sub.cancelled = true;
@@ -135,6 +174,7 @@ function cancelSubscription(sub:Subscription<any>) {
 }
 function runSubscription<T>(sub:Subscription<T>) {
     sub.pending = false;
+    sub.iteration++;
     reactor.set(sub);
     const res = sub.cb();
     reactor.reset();
@@ -143,5 +183,23 @@ function runSubscription<T>(sub:Subscription<T>) {
             sub.states.delete(state);
         }
     }
-    sub.reaction?.(res, sub.states.size > 0);
+    if (sub.states.size === 0) {
+        cancelSubscription(sub);
+    }
+    if (sub.firstRun) {
+        sub.firstRun = false;
+        if (sub.states.size > 0) {
+            const container = currentSubscriptions[currentSubscriptions.length - 1];
+            if (container) {
+                container.list.push(sub);
+            }
+        }
+        if (sub.reaction) {
+            sub.lastValue = res;
+            sub.reaction(res, sub.cancelled);
+        }
+    } else if (sub.reaction && sub.lastValue !== res) {
+        sub.lastValue = res;
+        sub.reaction(res, sub.cancelled);
+    }
 }

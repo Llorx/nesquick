@@ -126,6 +126,42 @@ test.describe("State", (test, after) => {
             Assert.strictEqual(called.done, true);
         }
     });
+    test("should not call callback if the state is updated with the same value", {
+        ARRANGE() {
+            const [ getCounter, setCounter ] = State.useState(0);
+            const cbCount = { count: 0 };
+            State.useEffect(() => {
+                cbCount.count++;
+                return getCounter();
+            })
+            return { cbCount, setCounter };
+        },
+        ACT({ setCounter }) {
+            setCounter(0);
+        },
+        ASSERT(_, { cbCount }) {
+            Assert.strictEqual(cbCount.count, 1);
+        }
+    });
+    test("should not call reaction if the efect returns the same value", {
+        ARRANGE() {
+            const [ getCounter, setCounter ] = State.useState(0);
+            const reactionCount = { count: 0 };
+            State.useEffect(() => {
+                getCounter();
+                return 0;
+            }, () => {
+                reactionCount.count++;
+            })
+            return { reactionCount, setCounter };
+        },
+        ACT({ setCounter }) {
+            setCounter(1);
+        },
+        ASSERT(_, { reactionCount }) {
+            Assert.strictEqual(reactionCount.count, 1);
+        }
+    });
     test.describe("useRender", test => {
         test("should get state value on creation", {
             ARRANGE() {
@@ -457,5 +493,119 @@ test.describe("State", (test, after) => {
                 sub2.assert(0);
             }
         }
+    });
+    test.describe("useMemo", test => {
+        test("should not call callback on creation", {
+            ACT() {
+                const cbCount = { count: 0 };
+                State.useMemo(() => cbCount.count++);
+                return { cbCount };
+            },
+            ASSERT({ cbCount }) {
+                Assert.strictEqual(cbCount.count, 0);
+            }
+        });
+        test("should call callback first time getMemo is accessed", {
+            ARRANGE() {
+                const cbCount = { count: 0 };
+                const getMemo = State.useMemo(() => cbCount.count++);
+                return { getMemo, cbCount };
+            },
+            ACT({ getMemo }) {
+                getMemo();
+            },
+            ASSERT(_, { cbCount }) {
+                Assert.strictEqual(cbCount.count, 1);
+            }
+        });
+        test("should not call callback second time getMemo is accessed", {
+            ARRANGE() {
+                const cbCount = { count: 0 };
+                const getMemo = State.useMemo(() => cbCount.count++);
+                getMemo();
+                return { getMemo, cbCount };
+            },
+            ACT({ getMemo }) {
+                getMemo();
+            },
+            ASSERT(_, { cbCount }) {
+                Assert.strictEqual(cbCount.count, 1);
+            }
+        });
+        test("should not call callback when a state is updated", {
+            ARRANGE() {
+                const cbCount = { count: 0 };
+                const [ getCounter, setCounter ] = State.useState(0);
+                const getMemo = State.useMemo(() => {
+                    cbCount.count++;
+                    return getCounter();
+                });
+                getMemo();
+                return { setCounter, cbCount };
+            },
+            ACT({ setCounter }) {
+                setCounter(1);
+            },
+            ASSERT(_, { cbCount }) {
+                Assert.strictEqual(cbCount.count, 1);
+            }
+        });
+        test("should notify the getMemo renderer when a state is updated", {
+            ARRANGE() {
+                const cbCount = { count: 0 };
+                const [ getCounter, setCounter ] = State.useState(0);
+                const getMemo = State.useMemo(getCounter);
+                State.useEffect(() => {
+                    cbCount.count++;
+                    getMemo();
+                });
+                return { setCounter, cbCount };
+            },
+            ACT({ setCounter }) {
+                setCounter(1);
+            },
+            ASSERT(_, { cbCount }) {
+                Assert.strictEqual(cbCount.count, 2);
+            }
+        });
+        test("should call callback when getMemo is called after a state is updated", {
+            ARRANGE() {
+                const cbCount = { count: 0 };
+                const [ getCounter, setCounter ] = State.useState(0);
+                const getMemo = State.useMemo(() => {
+                    cbCount.count++;
+                    return getCounter();
+                });
+                getMemo();
+                return { setCounter, getMemo, cbCount };
+            },
+            ACT({ setCounter, getMemo }) {
+                setCounter(1);
+                getMemo();
+            },
+            ASSERT(_, { cbCount }) {
+                Assert.strictEqual(cbCount.count, 2);
+            }
+        });
+        test("should not call callback when getMemo is called multiple times after a state is updated", {
+            ARRANGE() {
+                const cbCount = { count: 0 };
+                const [ getCounter, setCounter ] = State.useState(0);
+                const getMemo = State.useMemo(() => {
+                    cbCount.count++;
+                    return getCounter();
+                });
+                getMemo();
+                setCounter(1);
+                getMemo();
+                return { getMemo, cbCount };
+            },
+            ACT({ getMemo }) {
+                getMemo();
+            },
+            ASSERT(_, { cbCount }) {
+                Assert.strictEqual(cbCount.count, 2);
+            }
+        });
     });
 });

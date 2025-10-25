@@ -176,7 +176,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     private _renderStyle(element:HTMLElement, style:unknown) {
         switch (typeof style) {
             case "function": {
-                useRender(style as ()=>unknown, (style, isState) => {
+                useRender(style as ()=>unknown, (style, lastReaction) => {
                     if (this._styleSubscriptions != null) {
                         this._styleSubscriptions.dispose();
                         this._styleSubscriptions = null;
@@ -184,14 +184,14 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                     switch (typeof style) {
                         case "object": {
                             if (style) {
-                                if (isState) {
+                                if (lastReaction) {
+                                    this._renderStyles(element, style);
+                                } else {
                                     element.removeAttribute("style");
                                     this._styleSubscriptions = new Subscriptions();
                                     subscriptions.set(this._styleSubscriptions);
                                     this._renderStyles(element, style);
                                     subscriptions.reset();
-                                } else {
-                                    this._renderStyles(element, style);
                                 }
                             }
                             break;
