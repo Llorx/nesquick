@@ -227,9 +227,16 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                 if (child instanceof NesquickComponent) {
                     this._renderChild(document, parent, this._pushChild(), child);
                 } else if (typeof child === "function") {
-                    const ch = this._pushChild();
-                    useRender(child, children => {
-                        this._renderChild(document, parent, ch, children);
+                    let ch:NesquickChild|null = null;
+                    useRender(child, (children, lastReaction) => {
+                        if (lastReaction && ch == null && Array.isArray(children)) {
+                            this._renderChildren(document, parent, children);
+                        } else {
+                            if (ch == null) {
+                                ch = this._pushChild();
+                            }
+                            this._renderChild(document, parent, ch, children);
+                        }
                     });
                 } else {
                     this._renderChild(document, parent, this._pushChild(), child);

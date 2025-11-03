@@ -1,7 +1,7 @@
 export type Getter<T> = () => T;
 export type Setter<T> = (value:T) => void;
-export type GetterSetter<T> = (cb:(value:T)=>T) => void;
-export type State<T> = [get:Getter<T>, set:Setter<T>, getSet:GetterSetter<T>];
+export type Updater<T> = (cb:(value:T)=>T) => void;
+export type State<T> = [get:Getter<T>, set:Setter<T>, update:Updater<T>];
 type Subscription<T> = {
     cb:()=>T;
     iteration:number;
@@ -98,7 +98,7 @@ export function useState<T>(value:T):State<T> {
             }
         }
     };
-    return [ getValue, setValue, cb => { // getSet
+    return [ getValue, setValue, cb => { // update
         setValue(cb(value));
     }];
 }

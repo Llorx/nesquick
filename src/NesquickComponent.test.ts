@@ -306,6 +306,21 @@ test.describe("NesquickComponent", (test, after) => {
                     assertHTML(document, res, "<div><span></span></div>");
                 }
             });
+            test("should render children function without fragment", {
+                ARRANGE() {
+                    const component = new NesquickComponent("div", {
+                        children: () => ["test1"]
+                    });
+                    const document = newDocument();
+                    return { component, document };
+                },
+                ACT({ component, document }) {
+                    return component.render(document);
+                },
+                ASSERT(res, { document }) {
+                    assertHTML(document, res, "<div>test1</div>");
+                }
+            });
             test.describe("state", test => {
                 test.describe("from single string", test => {
                     test("should render", {
