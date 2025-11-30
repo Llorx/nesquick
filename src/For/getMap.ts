@@ -1,4 +1,4 @@
-import { Props } from "../jsx-runtime";
+import { Props } from "../Nesquick";
 import { ForProps } from "./For";
 
 export type IdMap<T, ID, CHILD> = {

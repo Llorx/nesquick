@@ -356,4 +356,4 @@ export class NesquickComponent<P extends ComponentProps = {}> {
 
 // Cyclic dependency fix
 import { NesquickFragment } from "./NesquickFragment";
-import { JSX } from "./jsx-runtime";
+import { JSX } from "./Nesquick";

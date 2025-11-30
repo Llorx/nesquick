@@ -6,7 +6,7 @@ import { JSDOM } from "jsdom";
 
 import { NesquickComponent } from "./NesquickComponent";
 import { useState } from "./State";
-import { JSX } from "./jsx-runtime";
+import { JSX } from "./Nesquick";
 
 // TODO: Test a Dispose
 // TODO: Add render NesquickFragment and render state NesquickFragment tests (from and to)

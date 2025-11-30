@@ -1,4 +1,4 @@
-import { Props, JSX } from "../jsx-runtime";
+import { Props, JSX } from "../Nesquick";
 import { useRender, useState } from "../State";
 import { NesquickFragment } from "../NesquickFragment";
 import { getMap, IdMap } from "./getMap";

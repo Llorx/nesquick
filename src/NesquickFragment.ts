@@ -1,4 +1,4 @@
-import { JSX } from "./jsx-runtime";
+import { JSX } from "./Nesquick";
 import { Child, Children, NesquickComponent, NesquickParent, VeactDocument } from "./NesquickComponent";
 
 // TODO: Test when deleting/inserting components before/after rendering
