@@ -1,6 +1,5 @@
 import { FunctionComponent, ComponentProps, NesquickComponent } from "./NesquickComponent";
 import { NesquickFragment } from "./NesquickFragment";
-import { functionizeProps } from "./no-transformer/jsx-runtime";
 
 const propsSpreadSymbol = Symbol.for("$nesquickSpreadProps");
 
@@ -8,9 +7,6 @@ export const Fragment = Symbol();
 export function jsxs<P extends ComponentProps & {[propsSpreadSymbol]?:true}>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null) {
     if (type === Fragment) {
         return new NesquickFragment(props.children);
-    }
-    if (props[propsSpreadSymbol]) {
-        functionizeProps(props);
     }
     if (key !== undefined) {
         (props as any).key = key;

@@ -1,30 +1,37 @@
-import { Props, useState } from "../../lib/types";
-
-function ok() {
+function ok(arg?:any) {
     return 123;
 }
 const pepe = {
-    a: () => 123
+    a: (arg?:any) => 123
 };
 function Comp(props:{children?:any, a:string, b:string, c:()=>string, d?:any, e?:() => any}) {
     return <>
         <div
             a={props.a}
             b={props.b}
+            b-arrow={() => props.b} // in case props.b is a getter
             c-ref={props.c}
             c-call={props.c()}
             expression={123}
             func-call={ok()}
+            func-call-args={ok(1)}
             func-ref={ok}
-            attr-ref={pepe.a}
+            self-call={(() => 123)()}
+            self-call-func={(() => ok())()}
             attr-call={pepe.a()}
+            attr-call-args={pepe.a(1)}
+            attr-ref={pepe.a}
             expression-call={() => 123}
+            expression-call-args={(v:number) => 123 + v}
             comp={1 + 2}
             simple-ternary={1 === 1 ? 2 : 3}
             ref-ternary={1 === 1 ? 2 : ok}
-            comp-ref={1 + ok()}
-            comp-call={() => ok()}
-            arrow={() => {
+            call-ternary={1 === 1 ? 2 : ok()}
+            comp-call={1 + ok()}
+            comp-call-args={1 + ok(1)}
+            comp-sub-call={() => ok()}
+            comp-sub-call-args={() => ok(1)}
+            arrow-return={() => {
                 return ok();
             }}
             func={function() {
@@ -33,8 +40,11 @@ function Comp(props:{children?:any, a:string, b:string, c:()=>string, d?:any, e?
             string-literal="as2"
             string-expression={"as3"}
         >
+            {ok}
+            {ok()}
             {props.d}
             {props.e?.()}
+            {props.e()}
             {"as4"}
             {123}
             {ok() ? "ok": null}
@@ -48,7 +58,7 @@ const p = {a:"a20", b:"a21", c: () => "a22"};
     a="as5"
     b={"as6"}
     c={() => "as7"}
-    d={<Comp a="as8" b={"as9"} c={() => "a10"}>
+    d={<Comp a={p.a} b={p.c()} c={p.c}>
         {() => <span></span>}
     </Comp>}
     e={() => <Comp a="a11" b={"a12"} c={() => "a13"} />}

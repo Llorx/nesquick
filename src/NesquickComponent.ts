@@ -34,6 +34,22 @@ type XmlNs = {
     attributes:Map<string, string>|null;
 };
 
+function getAttributeNs(attributes:Map<string, string>, k:string) {
+    const index = k.indexOf(":");
+    if (index > -1) {
+        const ns = k.substring(0, index);
+        const name = k.substring(index + 1);
+        const namespace = attributes.get(ns);
+        if (namespace != null) {
+            return {
+                namespace: namespace,
+                name: name
+            };
+        }
+    }
+    return null;
+}
+
 export class NesquickComponent<P extends ComponentProps = {}> {
     private _subscriptions = new Subscriptions();
     private _styleSubscriptions:Subscriptions|null = null;
@@ -95,21 +111,6 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     setXmlns(xmlns:XmlNs|null) {
         this._xmlns = xmlns;
     }
-    private _getAttributeNs(attributes:Map<string, string>, k:string) {
-        const index = k.indexOf(":");
-        if (index > -1) {
-            const ns = k.substring(0, index);
-            const name = k.substring(index + 1);
-            const namespace = attributes.get(ns);
-            if (namespace != null) {
-                return {
-                    namespace: namespace,
-                    name: name
-                };
-            }
-        }
-        return null;
-    }
     private _renderPropsNs(attributes:Map<string, string>, element:Element, props:ComponentProps) {
         for (const k in props) {
             if (k !== "children" && k !== "xmlns" && k !== "ref") {
@@ -120,7 +121,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                         // TODO: Validate events
                         (element as any)[k.toLowerCase()] = props[k];
                     } else {
-                        const attribute = this._getAttributeNs(attributes, k);
+                        const attribute = getAttributeNs(attributes, k);
                         if (attribute) {
                             useRender(props[k], v => {
                                 element.setAttributeNS(attribute.namespace, attribute.name, String(v));
@@ -132,7 +133,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                         }
                     }
                 } else {
-                    const attribute = this._getAttributeNs(attributes, k);
+                    const attribute = getAttributeNs(attributes, k);
                     if (attribute) {
                         element.setAttributeNS(attribute.namespace, attribute.name, String(props[k]));
                     } else {

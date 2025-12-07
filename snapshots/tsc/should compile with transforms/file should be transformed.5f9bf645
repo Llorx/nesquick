@@ -1,4 +1,4 @@
-ÿo"	validatedT"data"ê"use strict";
+ÿo"	validatedT"data"®"use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -13,21 +13,20 @@ var __assign = (this && this.__assign) || function () {
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 var jsx_runtime_1 = require("nesquick/jsx-runtime");
-function ok() {
+function ok(arg) {
     return 123;
 }
 var pepe = {
-    a: function () { return 123; }
+    a: function (arg) { return 123; }
 };
 function Comp(props) {
-    return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, { children: (0, jsx_runtime_1.jsxs)("div", { a: function () { return props.a; }, b: function () { return props.b; }, "c-ref": function () { return props.c; }, "c-call": function () { return props.c(); }, expression: 123, "func-call": ok, "func-ref": ok, "attr-ref": function () { return pepe.a; }, "attr-call": function () { return pepe.a(); }, "expression-call": function () { return 123; }, comp: 1 + 2, "simple-ternary": 1 === 1 ? 2 : 3, "ref-ternary": function () { return 1 === 1 ? 2 : ok; }, "comp-ref": function () { return 1 + ok(); }, "comp-call": function () { return ok(); }, arrow: function () {
+    return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, { children: (0, jsx_runtime_1.jsxs)("div", { a: props.a, b: props.b, "b-arrow": function () { return props.b; }, "c-ref": props.c, "c-call": function () { return props.c(); }, expression: 123, "func-call": ok, "func-call-args": function () { return ok(1); }, "func-ref": ok, "self-call": function () { return (function () { return 123; })(); }, "self-call-func": function () { return (function () { return ok(); })(); }, "attr-call": function () { return pepe.a(); }, "attr-call-args": function () { return pepe.a(1); }, "attr-ref": pepe.a, "expression-call": function () { return 123; }, "expression-call-args": function (v) { return 123 + v; }, comp: 1 + 2, "simple-ternary": 1 === 1 ? 2 : 3, "ref-ternary": 1 === 1 ? 2 : ok, "call-ternary": function () { return 1 === 1 ? 2 : ok(); }, "comp-call": function () { return 1 + ok(); }, "comp-call-args": function () { return 1 + ok(1); }, "comp-sub-call": function () { return ok(); }, "comp-sub-call-args": function () { return ok(1); }, "arrow-return": function () {
                 return ok();
             }, func: function () {
                 return ok();
-            }, "string-literal": "as2", "string-expression": "as3", children: [function () { return props.d; }, function () { var _a; return (_a = props.e) === null || _a === void 0 ? void 0 : _a.call(props); }, "as4", 123, function () { return ok() ? "ok" : null; }, (1 === 1) ? "ok" : null, function () { return (1 === 1) ? ok : null; }] }) });
+            }, "string-literal": "as2", "string-expression": "as3", children: [ok, ok, props.d, function () { var _a; return (_a = props.e) === null || _a === void 0 ? void 0 : _a.call(props); }, function () { return props.e(); }, "as4", 123, function () { return ok() ? "ok" : null; }, (1 === 1) ? "ok" : null, (1 === 1) ? ok : null] }) });
 }
 var p = { a: "a20", b: "a21", c: function () { return "a22"; } };
-((0, jsx_runtime_1.jsxs)(Comp, { a: function () { return "as5"; }, b: function () { return "as6"; }, c: function () { return "as7"; }, d: function () {
-        return (0, jsx_runtime_1.jsx)(Comp, { a: function () { return "as8"; }, b: function () { return "as9"; }, c: function () { return "a10"; }, children: function () { return (0, jsx_runtime_1.jsx)("span", {}); } });
-    }, e: function () { return (0, jsx_runtime_1.jsx)(Comp, { a: function () { return "a11"; }, b: function () { return "a12"; }, c: function () { return "a13"; } }); }, children: [(0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)(Comp, { a: function () { return "a14"; }, b: function () { return "a15"; }, c: function () { return "a16"; } }), (0, jsx_runtime_1.jsx)(Comp, (_a = { a: "a17", b: "a18", c: function () { return "a19"; } }, _a[Symbol.for("$nesquickSpreadProps")] = true, _a)), (0, jsx_runtime_1.jsx)(Comp, __assign({}, p, (_b = {}, _b[Symbol.for("$nesquickSpreadProps")] = true, _b)))] }), function () { return (0, jsx_runtime_1.jsx)("div", {}); }, function () { return (0, jsx_runtime_1.jsx)("a", {}); }] }));
+((0, jsx_runtime_1.jsxs)(Comp, { a: _check_1("as5"), b: _check_1("as6"), c: function () { return "as7"; }, d: (0, jsx_runtime_1.jsx)(Comp, { a: _check_1(p.a), b: function () { return p.c(); }, c: _check_1(p.c), children: function () { return (0, jsx_runtime_1.jsx)("span", {}); } }), e: function () { return (0, jsx_runtime_1.jsx)(Comp, { a: _check_1("a11"), b: _check_1("a12"), c: function () { return "a13"; } }); }, children: [(0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)(Comp, { a: _check_1("a14"), b: _check_1("a15"), c: function () { return "a16"; } }), (0, jsx_runtime_1.jsx)(Comp, (_a = { a: "a17", b: "a18", c: function () { return "a19"; } }, _a[Symbol.for("$nesquickSpreadProps")] = true, _a)), (0, jsx_runtime_1.jsx)(Comp, __assign({}, p, (_b = {}, _b[Symbol.for("$nesquickSpreadProps")] = true, _b)))] }), (0, jsx_runtime_1.jsx)("div", {}), function () { return (0, jsx_runtime_1.jsx)("a", {}); }] }));
+function _check_1(v) { return typeof v === "function" ? v : function () { return v; }; }
 {

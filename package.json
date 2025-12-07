@@ -1,15 +1,38 @@
 {
   "name": "nesquick",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "description": "React-like library with focus on drawing performance",
-  "types": "./lib/types",
-  "main": "./lib",
+  "types": "./lib/types/index.d.ts",
+  "main": "./lib/index.js",
   "typesVersions": {
     "*": {
+      ".": ["./lib/types/index.d.ts"],
       "jsx-runtime": ["./lib/types/jsx-runtime.d.ts"],
       "jsx-dev-runtime": ["./lib/types/jsx-dev-runtime.d.ts"],
-      "no-transformer/jsx-runtime": ["./lib/types/no-transformer/jsx-runtime.d.ts"],
-      "no-transformer/jsx-dev-runtime": ["./lib/types/no-transformer/jsx-dev-runtime.d.ts"]
+      "no-transformer/jsx-runtime": ["./lib/types/jsx-runtime.d.ts"],
+      "no-transformer/jsx-dev-runtime": ["./lib/types/jsx-dev-runtime.d.ts"]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./jsx-runtime": {
+      "types": "./lib/types/jsx-runtime.d.ts",
+      "default": "./lib/jsx-runtime.js"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./lib/types/jsx-dev-runtime.d.ts",
+      "default": "./lib/jsx-dev-runtime.js"
+    },
+    "./no-transformer/jsx-runtime": {
+      "types": "./lib/types/no-transformer/jsx-runtime.d.ts",
+      "default": "./lib/no-transformer/jsx-runtime.js"
+    },
+    "./no-transformer/jsx-dev-runtime": {
+      "types": "./lib/types/no-transformer/jsx-dev-runtime.d.ts",
+      "default": "./lib/no-transformer/jsx-dev-runtime.js"
     }
   },
   "bin": {

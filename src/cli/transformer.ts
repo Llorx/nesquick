@@ -5,40 +5,79 @@ type Options = {
     isJsxAttribute?:boolean;
 };
 function getSingleIdentifier(node:TS.Node) {
-    const identifiers:TS.Node[] = [];
+    let identifier:TS.Node|null = null;
     node.forEachChild(node => {
         if (TS.isIdentifier(node)) {
-            identifiers.push(node);
+            if (identifier != null) {
+                return node; // break
+            }
+            identifier = node;
         }
     });
-    if (identifiers.length === 1) {
-        return identifiers[0];
-    }
-    return null;
+    return identifier;
 }
 function getSingleBody(node:TS.Node) {
-    const body:TS.Node[] = [];
+    let body:TS.Node|null = null;
     node.forEachChild(node => {
-        body.push(node);
+        if (body != null) {
+            return node; // break;
+        }
+        body = node;
     });
-    if (body.length === 1) {
-        return body[0];
-    }
-    return null;
+    return body;
 }
 
-export const transformer: TS.TransformerFactory<TS.SourceFile> = context => {
+export function createCheckFunction(fName:TS.Identifier) {
+    return TS.factory.createFunctionDeclaration(
+        void 0,
+        void 0,
+        fName,
+        void 0,
+        [TS.factory.createParameterDeclaration(
+            void 0,
+            void 0,
+            TS.factory.createIdentifier("v")
+        )],
+        void 0,
+        TS.factory.createBlock([
+            TS.factory.createReturnStatement(
+                TS.factory.createConditionalExpression(
+                    TS.factory.createBinaryExpression(
+                        TS.factory.createTypeOfExpression(TS.factory.createIdentifier("v")),
+                        TS.factory.createToken(TS.SyntaxKind.EqualsEqualsEqualsToken),
+                        TS.factory.createStringLiteral("function")
+                    ),
+                    TS.factory.createToken(TS.SyntaxKind.QuestionToken),
+                    TS.factory.createIdentifier("v"),
+                    TS.factory.createToken(TS.SyntaxKind.ColonToken),
+                    TS.factory.createArrowFunction(
+                        void 0,
+                        void 0,
+                        [],
+                        void 0,
+                        TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken),
+                        TS.factory.createIdentifier("v")
+                    )
+                )
+            )
+        ])
+    );
+}
+
+export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
     return sourceFile => {
+        let hasChecker = false;
+        const checkerName = TS.factory.createUniqueName("_check");
         const visitGeneric = (node:TS.Node, options:Options) => {
             let hasSpread = options.userComponent && TS.isJsxSpreadAttribute(node);
-            let hasChildIdentifier = false;
+            let hasCallExpression = TS.isCallExpression(node);
             if (TS.isJsxOpeningLikeElement(node)) {
                 const firstLetter = node.tagName.getText()[0];
                 const userComponent = firstLetter !== firstLetter.toLowerCase();
                 node = TS.visitEachChild(node, node => {
                     const res = visitGeneric(node, { userComponent });
                     hasSpread = hasSpread || res.hasSpread;
-                    hasChildIdentifier = hasChildIdentifier || res.hasChildIdentifier || TS.isIdentifier(node);
+                    hasCallExpression = hasCallExpression || res.hasCallExpression;
                     return res.node;
                 }, context);
                 if (userComponent && hasSpread) {
@@ -61,76 +100,81 @@ export const transformer: TS.TransformerFactory<TS.SourceFile> = context => {
                 node = TS.visitEachChild(node, node => {
                     const res = visitGeneric(node, { ...options, isJsxAttribute: true });
                     hasSpread = hasSpread || res.hasSpread;
-                    hasChildIdentifier = hasChildIdentifier || res.hasChildIdentifier || TS.isIdentifier(node);
+                    hasCallExpression = hasCallExpression || res.hasCallExpression;
                     return res.node;
                 }, context);
             } else if (TS.isJsxExpression(node)) {
-                node = TS.visitEachChild(node, node => {
-                    const res = visitorExpression(node, { ...options, isJsxAttribute: false });
-                    hasChildIdentifier = hasChildIdentifier || res.hasChildIdentifier || TS.isIdentifier(node);
-                    return res.node;
-                }, context);
+                node = TS.visitEachChild(node, node => visitorExpression(node, { ...options, isJsxAttribute: false }), context);
             } else if (options.isJsxAttribute && TS.isStringLiteral(node)) {
-                const returnNode = TS.visitNode(node, node => {
-                    const res = visitorExpression(node, { ...options, isJsxAttribute: false });
-                    hasChildIdentifier = hasChildIdentifier || res.hasChildIdentifier || TS.isIdentifier(node);
-                    return res.node;
-                }, TS.isExpression);
+                const returnNode = TS.visitNode(node, node => visitorExpression(node, { ...options, isJsxAttribute: false }), TS.isExpression);
                 if (TS.isStringLiteral(returnNode)) {
                     node = returnNode;
                 } else {
-                    node = TS.factory.createJsxExpression(undefined, returnNode);
+                    node = TS.factory.createJsxExpression(void 0, returnNode);
                 }
             } else {
                 node = TS.visitEachChild(node, node => {
                     const res = visitGeneric(node, { ...options, isJsxAttribute: false });
                     hasSpread = hasSpread || res.hasSpread;
-                    hasChildIdentifier = hasChildIdentifier || res.hasChildIdentifier || TS.isIdentifier(node);
+                    hasCallExpression = hasCallExpression || res.hasCallExpression;
                     return res.node;
                 }, context);
             }
-            return { hasSpread, hasChildIdentifier, node };
+            return { hasSpread, hasCallExpression, node };
         };
         const visitorExpression = (node:TS.Node, options:Options) => {
-            let hasChildIdentifier = false;
             if (TS.isParenthesizedExpression(node)) {
                 const body = getSingleBody(node);
                 if (body) {
-                    node = TS.visitNode(body, node => {
-                        const res = visitorExpression(node, options);
-                        hasChildIdentifier = hasChildIdentifier || res.hasChildIdentifier || TS.isIdentifier(node);
-                        return res.node;
-                    });
+                    node = body;
                 }
-            } else if (TS.isCallExpression(node)) {
-                const identifier = getSingleIdentifier(node);
-                if (identifier) {
+            }
+            if (TS.isCallExpression(node)) {
+                let identifier = null;
+                if (node.arguments.length === 0 && (identifier = getSingleIdentifier(node)) != null) {
                     node = identifier;
                 } else {
-                    node = TS.factory.createArrowFunction(undefined, undefined, [], undefined, TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken), TS.visitNode(node, node => {
-                        const res = visitGeneric(node, {});
-                        hasChildIdentifier = hasChildIdentifier || res.hasChildIdentifier || TS.isIdentifier(node);
-                        return res.node;
-                    }, TS.isConciseBody));
-                }
-            } else if (!TS.isFunctionLike(node) && TS.isExpression(node)) {
-                node = TS.visitNode(node, node => {
-                    const res = visitGeneric(node, {});
-                    hasChildIdentifier = hasChildIdentifier || res.hasChildIdentifier;
-                    return res.node;
-                });
-                if ((options.userComponent || hasChildIdentifier) && TS.isConciseBody(node)) {
-                    node = TS.factory.createArrowFunction(undefined, undefined, [], undefined, TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken), node);
+                    node = TS.factory.createArrowFunction(
+                        void 0,
+                        void 0,
+                        [],
+                        void 0,
+                        TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken),
+                        TS.visitNode(node, node => visitGeneric(node, {}).node, TS.isConciseBody)
+                    );
                 }
             } else {
-                node = TS.visitNode(node, node => {
-                    const res = visitGeneric(node, {});
-                    hasChildIdentifier = hasChildIdentifier || res.hasChildIdentifier || TS.isIdentifier(node);
-                    return res.node;
-                });
+                const res = visitGeneric(node, {});
+                node = res.node;
+                if (TS.isExpression(node) && !TS.isFunctionLike(node) && !TS.isJsxElement(node) && !TS.isJsxOpeningLikeElement(node)) {
+                    if (res.hasCallExpression) {
+                        node = TS.factory.createArrowFunction(
+                            void 0,
+                            void 0,
+                            [],
+                            void 0,
+                            TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken),
+                            TS.visitNode(node, node => visitGeneric(node, {}).node, TS.isConciseBody)
+                        );
+                    } else if (options.userComponent) {
+                        hasChecker = true;
+                        node = TS.factory.createCallExpression(
+                            checkerName,
+                            void 0,
+                            [node]
+                        );
+                    }
+                }
             }
-            return { hasChildIdentifier, node };
+            return node;
         };
-        return TS.visitNode(sourceFile, node => visitGeneric(node, {}).node, TS.isSourceFile);
+        sourceFile = TS.visitNode(sourceFile, node => visitGeneric(node, {}).node, TS.isSourceFile);
+        if (hasChecker) {
+            sourceFile = TS.factory.updateSourceFile(sourceFile, [
+                ...sourceFile.statements,
+                createCheckFunction(checkerName)
+            ]);
+        }
+        return sourceFile;
     };
 };
