@@ -19,8 +19,6 @@
         "./src/index.ts",
         "./src/jsx-runtime.ts",
         "./src/jsx-dev-runtime.ts",
-        "./src/no-transformer/jsx-runtime.ts",
-        "./src/no-transformer/jsx-dev-runtime.ts",
         "./src/cli/nesquick-tsc.ts",
         "./src/**/*.test.ts"
     ]

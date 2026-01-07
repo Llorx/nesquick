@@ -7,7 +7,7 @@ import * as State from "./State";
 
 test.describe("State", (test, after) => {
     global.requestAnimationFrame = process.nextTick as any;
-    after(null, () => global.requestAnimationFrame = undefined as any);
+    after(null, () => global.requestAnimationFrame = void 0 as any);
     function newSubscriptions(after:After) {
         const subscriptions = new State.Subscriptions();
         after(State.subscriptions.set(subscriptions), () => State.subscriptions.reset());

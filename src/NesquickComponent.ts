@@ -55,9 +55,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     private _styleSubscriptions:Subscriptions|null = null;
     private _xmlns:XmlNs|null = null;
     protected _children:NesquickChild[] = [];
-    constructor(private _render:string|FunctionComponent<P>, protected props:P) {
-        this.props = props;
-    }
+    constructor(private _render:string|FunctionComponent<P>, protected props:P) {}
     render(document:VeactDocument):Node {
         subscriptions.set(this._subscriptions);
         if (typeof this._render === "function") {

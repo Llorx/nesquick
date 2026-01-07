@@ -1,10 +1,8 @@
 import { FunctionComponent, ComponentProps, NesquickComponent } from "./NesquickComponent";
 import { NesquickFragment } from "./NesquickFragment";
 
-const propsSpreadSymbol = Symbol.for("$nesquickSpreadProps");
-
 export const Fragment = Symbol();
-export function jsxs<P extends ComponentProps & {[propsSpreadSymbol]?:true}>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null) {
+export function jsxs<P extends ComponentProps>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null) {
     if (type === Fragment) {
         return new NesquickFragment(props.children);
     }
@@ -16,19 +14,17 @@ export function jsxs<P extends ComponentProps & {[propsSpreadSymbol]?:true}>(typ
 export const jsx = jsxs;
 
 // exactOptionalPropertyTypes detection for specific optional types
-type HasUndefined<T, K extends keyof T> = {[L in K]-?:T[K]|undefined} extends {[L in K]?:T[K]} ? undefined extends T[K] ? true : false : false;
+type HasUndefined<T, K extends keyof T> = {[L in K]-?:T[L]|undefined} extends {[L in K]?:T[L]} ? undefined extends T[K] ? true : false : false;
 
 declare const WrappedFunctionType:unique symbol;
 type WrappedFunction<T> = (() => T) & {readonly [WrappedFunctionType]?:T};
-type UserProp<T> = T extends (...args:any[])=>any ? T : WrappedFunction<T>;
 type UserProps<T> = {
-    readonly [K in keyof T]:K extends keyof JSX.ElementChildrenAttribute ? T[K] : HasUndefined<T, K> extends true ? UserProp<T[K] | undefined> : UserProp<Exclude<T[K], undefined>>;
+    readonly [K in keyof T]:K extends keyof JSX.ElementChildrenAttribute ? T[K] : WrappedFunction<HasUndefined<T, K> extends true ? T[K] : Exclude<T[K], undefined>>;
 };
-type JSXProp<T> = T extends {readonly [WrappedFunctionType]?:infer R} ? R : T;
+type JSXProp<T> = T extends WrappedFunction<infer R> ? R : T;
 type JSXProps<T> = keyof T extends never ? {} : {
     [K in keyof T]:JSXProp<T[K]>;
 };
-export type Generic<T> = T extends (...args:any)=>infer R ? R : T;
 export { UserProps as Props };
 export type Component<P = {}> = (props:UserProps<P>) => JSX.Element;
 export namespace JSX {

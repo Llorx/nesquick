@@ -12,7 +12,7 @@ import { JSX } from "./Nesquick";
 // TODO: Add render NesquickFragment and render state NesquickFragment tests (from and to)
 test.describe("NesquickComponent", (test, after) => {
     global.requestAnimationFrame = process.nextTick as any;
-    after(null, () => global.requestAnimationFrame = undefined as any);
+    after(null, () => global.requestAnimationFrame = void 0 as any);
     function newDocument() {
         return new JSDOM("").window.document;
     }

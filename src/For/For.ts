@@ -23,12 +23,12 @@ type InitialForChild = Omit<ForChild, "component"|"childs"> & {
 type ChildRender<T> = (item:T, i:() => number) => JSX.Element;
 export type ForProps<T> = {
     each:T[];
-    children:ChildRender<T>;
+    children:ChildRender<NoInfer<T>>;
 } & ({
     ids?:never;
-    id:(item:T, i:number)=>unknown;
+    id:(item:NoInfer<T>, i:number)=>unknown;
 } | {
-    ids:(item:T, i:number)=>unknown[];
+    ids:(item:NoInfer<T>, i:number)=>unknown[];
     id?:never;
 } | {
     ids?:never;

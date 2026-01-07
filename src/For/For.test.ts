@@ -10,7 +10,7 @@ import { NesquickComponent } from "../NesquickComponent";
 
 test.describe("For", (test, after) => {
     global.requestAnimationFrame = process.nextTick as any;
-    after(null, () => global.requestAnimationFrame = undefined as any);
+    after(null, () => global.requestAnimationFrame = void 0 as any);
     function newDocument() {
         return new JSDOM("").window.document;
     }

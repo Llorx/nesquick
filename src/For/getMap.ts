@@ -14,14 +14,15 @@ export function getMap<T, CHILD>(props:Required<Extract<IdMapProps<T>, {id?:unkn
 export function getMap<T, CHILD>(props:Required<Extract<IdMapProps<T>, {ids?:unknown}>>):IdMap<T, unknown[], CHILD>;
 export function getMap<T, CHILD>(props:IdMapProps<T>):IdMap<T, T, CHILD>;
 export function getMap<T, CHILD>(props:IdMapProps<T>) {
-    if ("ids" in props && props.ids) {
+    const idsCallback = "ids" in props && props.ids?.();
+    if (idsCallback) {
         // TODO: Add pre-made maps for 1 element in the ids array, 2 elements, etc
         // and patch the map on the first getId
         const childrenMap = new Map<unknown, any>();
         let idLength = 0;
         return {
             getId(item, i) {
-                const ids = props.ids!(item, i);
+                const ids = idsCallback(item, i);
                 if (!ids || ids.length === 0) {
                     throw new Error(`Invalid ids array length. ids() should not return an empty array`);
                 }
@@ -87,8 +88,9 @@ export function getMap<T, CHILD>(props:IdMapProps<T>) {
         } satisfies IdMap<T, unknown[], CHILD>;
     } else {
         const childrenMap = new Map<unknown, CHILD>();
+        const idCallback = "id" in props && props.id?.() || (item => item);
         return {
-            getId: ("id" in props && props.id) || (item => item),
+            getId: idCallback,
             equalsId(a, b) {
                 return a === b;
             },

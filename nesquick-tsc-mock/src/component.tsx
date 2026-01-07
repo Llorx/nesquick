@@ -1,15 +1,20 @@
+import { Props } from "nesquick";
+
 function ok(arg?:any) {
     return 123;
 }
 const pepe = {
     a: (arg?:any) => 123
 };
-function Comp(props:{children?:any, a:string, b:string, c:()=>string, d?:any, e?:() => any}) {
+function Comp(props:Props<{children?:any, a:string, b:string, "b-t"?:string, "b-t-c"?:string, c:()=>string, d?:any, e?:() => any}>) {
     return <>
         <div
+            onClick={(event) => {
+                props.c();
+            }}
             a={props.a}
             b={props.b}
-            b-arrow={() => props.b} // in case props.b is a getter
+            b-arrow={(() => props.b)()} // in case props.b is a getter
             c-ref={props.c}
             c-call={props.c()}
             expression={123}
@@ -50,6 +55,7 @@ function Comp(props:{children?:any, a:string, b:string, c:()=>string, d?:any, e?
             {ok() ? "ok": null}
             {(1===1) ? "ok": null}
             {(1===1) ? ok: null}
+            <div {...{a: 1}}></div>
         </div>
     </>;
 }
@@ -57,6 +63,8 @@ const p = {a:"a20", b:"a21", c: () => "a22"};
 (<Comp
     a="as5"
     b={"as6"}
+    b-t={`as6t`}
+    b-t-c={`as6tc${1 + 1}`}
     c={() => "as7"}
     d={<Comp a={p.a} b={p.c()} c={p.c}>
         {() => <span></span>}
@@ -65,7 +73,7 @@ const p = {a:"a20", b:"a21", c: () => "a22"};
 >
     <span>
         <Comp a="a14" b={"a15"} c={() => "a16"} />
-        <Comp {...{a:"a17", b:"a18", c: () => "a19"}} />
+        <Comp {...{a:"a17", b:"a18", c: () => "a19", d: <Comp a="a20" b="a20" c={() => "as7"} />}} />
         <Comp {...p} />
     </span>
     {<div></div>}

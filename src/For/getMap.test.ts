@@ -9,7 +9,7 @@ test.describe("getMap", test => {
         test("should get id", {
             ARRANGE() {
                 return getMap<{id:number}, string>({
-                    id: item => item.id
+                    id: () => item => item.id
                 });
             },
             ACT(map) {
@@ -22,7 +22,7 @@ test.describe("getMap", test => {
         test("should equal ids", {
             ARRANGE() {
                 return getMap<{id:number}, string>({
-                    id: item => item.id
+                    id: () => item => item.id
                 });
             },
             ACT(map) {
@@ -38,7 +38,7 @@ test.describe("getMap", test => {
         test("should not equal ids", {
             ARRANGE() {
                 return getMap<{id:number}, string>({
-                    id: item => item.id
+                    id: () => item => item.id
                 });
             },
             ACT(map) {
@@ -54,7 +54,7 @@ test.describe("getMap", test => {
         test("should set item", {
             ARRANGE() {
                 return getMap<{id:number}, string>({
-                    id: item => item.id
+                    id: () => item => item.id
                 });
             },
             ACT(map) {
@@ -67,7 +67,7 @@ test.describe("getMap", test => {
         test("should set multiple items", {
             ARRANGE() {
                 return getMap<{id:number}, string>({
-                    id: item => item.id
+                    id: () => item => item.id
                 });
             },
             ACT(map) {
@@ -86,7 +86,7 @@ test.describe("getMap", test => {
         test("should delete item", {
             ARRANGE() {
                 const map = getMap<{id:number}, string>({
-                    id: item => item.id
+                    id: () => item => item.id
                 });
                 map.setChild(123, "123");
                 return map;
@@ -95,13 +95,13 @@ test.describe("getMap", test => {
                 map.deleteChild(123);
             },
             ASSERT(_, map) {
-                Assert.strictEqual(map.getChild(123), undefined);
+                Assert.strictEqual(map.getChild(123), void 0);
             }
         });
         test("should delete single item having multiple items", {
             ARRANGE() {
                 const map = getMap<{id:number}, string>({
-                    id: item => item.id
+                    id: () => item => item.id
                 });
                 map.setChild(123, "123");
                 map.setChild(124, "124");
@@ -112,7 +112,7 @@ test.describe("getMap", test => {
             },
             ASSERTS: {
                 "should not get first item"(_, map) {
-                    Assert.strictEqual(map.getChild(123), undefined);
+                    Assert.strictEqual(map.getChild(123), void 0);
                 },
                 "should get second item"(_, map) {
                     Assert.strictEqual(map.getChild(124), "124");
@@ -198,7 +198,7 @@ test.describe("getMap", test => {
                 map.deleteChild(123);
             },
             ASSERT(_, map) {
-                Assert.strictEqual(map.getChild(123), undefined);
+                Assert.strictEqual(map.getChild(123), void 0);
             }
         });
         test("should delete single item having multiple items", {
@@ -213,7 +213,7 @@ test.describe("getMap", test => {
             },
             ASSERTS: {
                 "should not get first item"(_, map) {
-                    Assert.strictEqual(map.getChild(123), undefined);
+                    Assert.strictEqual(map.getChild(123), void 0);
                 },
                 "should get second item"(_, map) {
                     Assert.strictEqual(map.getChild(124), "124");
@@ -225,7 +225,7 @@ test.describe("getMap", test => {
         test("should get id", {
             ARRANGE() {
                 return getMap<number, string>({
-                    ids: item => [item]
+                    ids: () => item => [item]
                 });
             },
             ACT(map) {
@@ -238,7 +238,7 @@ test.describe("getMap", test => {
         test("should equal ids", {
             ARRANGE() {
                 return getMap<number, string>({
-                    ids: item => [item]
+                    ids: () => item => [item]
                 });
             },
             ACT(map) {
@@ -254,7 +254,7 @@ test.describe("getMap", test => {
         test("should not equal ids", {
             ARRANGE() {
                 return getMap<number, string>({
-                    ids: item => [item]
+                    ids: () => item => [item]
                 });
             },
             ACT(map) {
@@ -270,7 +270,7 @@ test.describe("getMap", test => {
         test("should set item", {
             ARRANGE() {
                 return getMap<number, string>({
-                    ids: item => [item]
+                    ids: () => item => [item]
                 });
             },
             ACT(map) {
@@ -283,7 +283,7 @@ test.describe("getMap", test => {
         test("should set multiple items", {
             ARRANGE() {
                 return getMap<number, string>({
-                    ids: item => [item]
+                    ids: () => item => [item]
                 });
             },
             ACT(map) {
@@ -302,7 +302,7 @@ test.describe("getMap", test => {
         test("should delete item", {
             ARRANGE() {
                 const map = getMap<number, string>({
-                    ids: item => [item]
+                    ids: () => item => [item]
                 });
                 map.setChild([123], "123");
                 return map;
@@ -311,13 +311,13 @@ test.describe("getMap", test => {
                 map.deleteChild([123]);
             },
             ASSERT(_, map) {
-                Assert.strictEqual(map.getChild([123]), undefined);
+                Assert.strictEqual(map.getChild([123]), void 0);
             }
         });
         test("should delete single item having multiple items", {
             ARRANGE() {
                 const map = getMap<number, string>({
-                    ids: item => [item]
+                    ids: () => item => [item]
                 });
                 map.setChild([123], "123");
                 map.setChild([124], "124");
@@ -328,7 +328,7 @@ test.describe("getMap", test => {
             },
             ASSERTS: {
                 "should not get first item"(_, map) {
-                    Assert.strictEqual(map.getChild([123]), undefined);
+                    Assert.strictEqual(map.getChild([123]), void 0);
                 },
                 "should get second item"(_, map) {
                     Assert.strictEqual(map.getChild([124]), "124");
@@ -340,7 +340,7 @@ test.describe("getMap", test => {
         test("should get id", {
             ARRANGE() {
                 return getMap<[number, number], string>({
-                    ids: item => [item[0], item[1]]
+                    ids: () => item => [item[0], item[1]]
                 });
             },
             ACT(map) {
@@ -353,7 +353,7 @@ test.describe("getMap", test => {
         test("should set item", {
             ARRANGE() {
                 return getMap<[number, number], string>({
-                    ids: item => [item[0], item[1]]
+                    ids: () => item => [item[0], item[1]]
                 })
             },
             ACT(map) {
@@ -366,7 +366,7 @@ test.describe("getMap", test => {
         test("should set multiple items", {
             ARRANGE() {
                 return getMap<[number, number], string>({
-                    ids: item => [item[0], item[1]]
+                    ids: () => item => [item[0], item[1]]
                 })
             },
             ACT(map) {
@@ -385,7 +385,7 @@ test.describe("getMap", test => {
         test("should set multiple items with same base id", {
             ARRANGE() {
                 return getMap<[number, number], string>({
-                    ids: item => [item[0], item[1]]
+                    ids: () => item => [item[0], item[1]]
                 })
             },
             ACT(map) {
@@ -404,7 +404,7 @@ test.describe("getMap", test => {
         test("should delete item", {
             ARRANGE() {
                 const map = getMap<[number, number], string>({
-                    ids: item => [item[0], item[1]]
+                    ids: () => item => [item[0], item[1]]
                 })
                 map.setChild([123, 0], "123");
                 return map;
@@ -413,13 +413,13 @@ test.describe("getMap", test => {
                 map.deleteChild([123, 0]);
             },
             ASSERT(_, map) {
-                Assert.strictEqual(map.getChild([123, 0]), undefined);
+                Assert.strictEqual(map.getChild([123, 0]), void 0);
             }
         });
         test("should delete single item having multiple items", {
             ARRANGE() {
                 const map = getMap<[number, number], string>({
-                    ids: item => [item[0], item[1]]
+                    ids: () => item => [item[0], item[1]]
                 })
                 map.setChild([123, 0], "123");
                 map.setChild([124, 1], "124");
@@ -430,7 +430,7 @@ test.describe("getMap", test => {
             },
             ASSERTS: {
                 "should not get first item"(_, map) {
-                    Assert.strictEqual(map.getChild([123, 0]), undefined);
+                    Assert.strictEqual(map.getChild([123, 0]), void 0);
                 },
                 "should get second item"(_, map) {
                     Assert.strictEqual(map.getChild([124, 1]), "124");
@@ -440,7 +440,7 @@ test.describe("getMap", test => {
         test("should delete single item having multiple items with same base id", {
             ARRANGE() {
                 const map = getMap<[number, number], string>({
-                    ids: item => [item[0], item[1]]
+                    ids: () => item => [item[0], item[1]]
                 })
                 map.setChild([123, 0], "123_0");
                 map.setChild([123, 1], "123_1");
@@ -451,7 +451,7 @@ test.describe("getMap", test => {
             },
             ASSERTS: {
                 "should not get first item"(_, map) {
-                    Assert.strictEqual(map.getChild([123, 0]), undefined);
+                    Assert.strictEqual(map.getChild([123, 0]), void 0);
                 },
                 "should get second item"(_, map) {
                     Assert.strictEqual(map.getChild([123, 1]), "123_1");
@@ -463,7 +463,7 @@ test.describe("getMap", test => {
         test("should get id", {
             ARRANGE() {
                 return getMap<[number, number, number], string>({
-                    ids: item => [item[0], item[1], item[2]]
+                    ids: () => item => [item[0], item[1], item[2]]
                 });
             },
             ACT(map) {
@@ -476,7 +476,7 @@ test.describe("getMap", test => {
         test("should set item", {
             ARRANGE() {
                 return getMap<[number, number, number], string>({
-                    ids: item => [item[0], item[1], item[2]]
+                    ids: () => item => [item[0], item[1], item[2]]
                 })
             },
             ACT(map) {
@@ -489,7 +489,7 @@ test.describe("getMap", test => {
         test("should set multiple items", {
             ARRANGE() {
                 return getMap<[number, number, number], string>({
-                    ids: item => [item[0], item[1]]
+                    ids: () => item => [item[0], item[1]]
                 })
             },
             ACT(map) {
@@ -508,7 +508,7 @@ test.describe("getMap", test => {
         test("should set multiple items with same base id", {
             ARRANGE() {
                 return getMap<[number, number, number], string>({
-                    ids: item => [item[0], item[1], item[2]]
+                    ids: () => item => [item[0], item[1], item[2]]
                 })
             },
             ACT(map) {
@@ -527,7 +527,7 @@ test.describe("getMap", test => {
         test("should delete item", {
             ARRANGE() {
                 const map = getMap<[number, number, number], string>({
-                    ids: item => [item[0], item[1], item[2]]
+                    ids: () => item => [item[0], item[1], item[2]]
                 })
                 map.setChild([123, 0, 1], "123");
                 return map;
@@ -536,13 +536,13 @@ test.describe("getMap", test => {
                 map.deleteChild([123, 0, 1]);
             },
             ASSERT(_, map) {
-                Assert.strictEqual(map.getChild([123, 0, 1]), undefined);
+                Assert.strictEqual(map.getChild([123, 0, 1]), void 0);
             }
         });
         test("should delete single item having multiple items", {
             ARRANGE() {
                 const map = getMap<[number, number, number], string>({
-                    ids: item => [item[0], item[1], item[2]]
+                    ids: () => item => [item[0], item[1], item[2]]
                 })
                 map.setChild([123, 0, 1], "123");
                 map.setChild([124, 1, 1], "124");
@@ -553,7 +553,7 @@ test.describe("getMap", test => {
             },
             ASSERTS: {
                 "should not get first item"(_, map) {
-                    Assert.strictEqual(map.getChild([123, 0, 1]), undefined);
+                    Assert.strictEqual(map.getChild([123, 0, 1]), void 0);
                 },
                 "should get second item"(_, map) {
                     Assert.strictEqual(map.getChild([124, 1, 1]), "124");
@@ -563,7 +563,7 @@ test.describe("getMap", test => {
         test("should delete single item having multiple items with same base id", {
             ARRANGE() {
                 const map = getMap<[number, number, number], string>({
-                    ids: item => [item[0], item[1], item[2]]
+                    ids: () => item => [item[0], item[1], item[2]]
                 })
                 map.setChild([123, 0, 0], "123_0");
                 map.setChild([123, 1, 0], "123_1");
@@ -574,7 +574,7 @@ test.describe("getMap", test => {
             },
             ASSERTS: {
                 "should not get first item"(_, map) {
-                    Assert.strictEqual(map.getChild([123, 0, 0]), undefined);
+                    Assert.strictEqual(map.getChild([123, 0, 0]), void 0);
                 },
                 "should get second item"(_, map) {
                     Assert.strictEqual(map.getChild([123, 1, 0]), "123_1");
