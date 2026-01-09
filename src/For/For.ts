@@ -1,4 +1,4 @@
-import { Props, JSX } from "../Nesquick";
+import { JSX } from "../Nesquick";
 import { useRender, useState } from "../State";
 import { NesquickFragment } from "../NesquickFragment";
 import { getMap, IdMap } from "./getMap";
@@ -45,7 +45,7 @@ function renderChild<T>(child:InitialForChild, item:T, render:ChildRender<T>) {
     child.component = render(item, () => getI());
     return child as ForChild;
 };
-function getCycleMap<T>(props:Props<ForProps<T>>) {
+function getCycleMap<T>(props:ForProps<T>) {
     const map:IdMap<T, unknown, ForChilds> = getMap(props);
     let cycle = false;
     return {
@@ -104,14 +104,14 @@ function getCycleMap<T>(props:Props<ForProps<T>>) {
         }
     };
 }
-export function For<T>(props:Props<ForProps<T>>) {
+export function For<T>(props:ForProps<T>) {
     const children:ForChild[] = [];
     const fragment = new NesquickFragment([]);
     let cycle = false;
     const map = getCycleMap(props);
     useRender(() => {
         cycle = !cycle;
-        const each = props.each().slice(); // slice just in case it returns a reference that is modified while rendering
+        const each = props.each.slice(); // slice just in case it returns a reference that is modified while rendering
         if (children.length === 0) {
             for (let i = 0; i < each.length; i++) {
                 const item = each[i];

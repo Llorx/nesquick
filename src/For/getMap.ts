@@ -1,4 +1,3 @@
-import { Props } from "../Nesquick";
 import { ForProps } from "./For";
 
 export type IdMap<T, ID, CHILD> = {
@@ -9,12 +8,12 @@ export type IdMap<T, ID, CHILD> = {
     deleteChild(id:ID):void;
     clearChilds():void;
 };
-type IdMapProps<T> = Props<Pick<Extract<ForProps<T>, {id?:unknown}>, "id">|Pick<Extract<ForProps<T>, {ids?:unknown}>, "ids">>;
+type IdMapProps<T> = Pick<Extract<ForProps<T>, {id?:unknown}>, "id"> | Pick<Extract<ForProps<T>, {ids?:unknown}>, "ids">;
 export function getMap<T, CHILD>(props:Required<Extract<IdMapProps<T>, {id?:unknown}>>):IdMap<T, unknown, CHILD>;
 export function getMap<T, CHILD>(props:Required<Extract<IdMapProps<T>, {ids?:unknown}>>):IdMap<T, unknown[], CHILD>;
 export function getMap<T, CHILD>(props:IdMapProps<T>):IdMap<T, T, CHILD>;
 export function getMap<T, CHILD>(props:IdMapProps<T>) {
-    const idsCallback = "ids" in props && props.ids?.();
+    const idsCallback = "ids" in props && props.ids;
     if (idsCallback) {
         // TODO: Add pre-made maps for 1 element in the ids array, 2 elements, etc
         // and patch the map on the first getId
@@ -88,7 +87,7 @@ export function getMap<T, CHILD>(props:IdMapProps<T>) {
         } satisfies IdMap<T, unknown[], CHILD>;
     } else {
         const childrenMap = new Map<unknown, CHILD>();
-        const idCallback = "id" in props && props.id?.() || (item => item);
+        const idCallback = "id" in props && props.id || (item => item);
         return {
             getId: idCallback,
             equalsId(a, b) {

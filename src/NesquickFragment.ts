@@ -1,14 +1,12 @@
 import { JSX } from "./Nesquick";
-import { Child, Children, NesquickComponent, NesquickParent, VeactDocument } from "./NesquickComponent";
+import { Child, NesquickComponent, NesquickParent, VeactDocument } from "./NesquickComponent";
 
 // TODO: Test when deleting/inserting components before/after rendering
 export class NesquickFragment extends NesquickComponent<{children:Child[]}> implements NesquickParent { // TODO: any
     private _lastNode:Node|null = null;
     private _fragment:Node|null = null;
-    constructor(children:Children) {
-        super("", {
-            children: children != null ? Array.isArray(children) ? children : [children] : []
-        });
+    constructor(children:Child[]) {
+        super("", { children });
     }
     override render(document:VeactDocument) {
         this._fragment = document.createDocumentFragment();

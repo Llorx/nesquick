@@ -11,22 +11,17 @@ export function jsxs<P extends ComponentProps>(type:string|FunctionComponent<P>|
     }
     return new NesquickComponent(type, props);
 }
-export const jsx = jsxs;
+export function jsx<P extends ComponentProps>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null) {
+    if (type === Fragment) {
+        return new NesquickFragment([props.children]);
+    }
+    if (key !== undefined) {
+        (props as any).key = key;
+    }
+    return new NesquickComponent(type, props);
+}
 
-// exactOptionalPropertyTypes detection for specific optional types
-type HasUndefined<T, K extends keyof T> = {[L in K]-?:T[L]|undefined} extends {[L in K]?:T[L]} ? undefined extends T[K] ? true : false : false;
-
-declare const WrappedFunctionType:unique symbol;
-type WrappedFunction<T> = (() => T) & {readonly [WrappedFunctionType]?:T};
-type UserProps<T> = {
-    readonly [K in keyof T]:K extends keyof JSX.ElementChildrenAttribute ? T[K] : WrappedFunction<HasUndefined<T, K> extends true ? T[K] : Exclude<T[K], undefined>>;
-};
-type JSXProp<T> = T extends WrappedFunction<infer R> ? R : T;
-type JSXProps<T> = keyof T extends never ? {} : {
-    [K in keyof T]:JSXProp<T[K]>;
-};
-export { UserProps as Props };
-export type Component<P = {}> = (props:UserProps<P>) => JSX.Element;
+export type Component<P extends Record<any, any> = {}> = (props:P) => JSX.Element;
 export namespace JSX {
     export type JSXEvent<T extends Event, T2 extends EventTarget> = T&{currentTarget:T2};
     export type JSXHTMLEvent<T extends EventTarget> = {[K in keyof HTMLElementEventMap as `on${Capitalize<K>}`]?:(e:JSXEvent<HTMLElementEventMap[K], T>) => void};
@@ -60,5 +55,4 @@ export namespace JSX {
     export interface ElementChildrenAttribute {
         children:{};
     }
-    export type LibraryManagedAttributes<_, P> = JSXProps<P>;
 }

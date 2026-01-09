@@ -1,12 +1,10 @@
-import { Props } from "nesquick";
-
 function ok(arg?:any) {
     return 123;
 }
 const pepe = {
     a: (arg?:any) => 123
 };
-function Comp(props:Props<{children?:any, a:string, b:string, "b-t"?:string, "b-t-c"?:string, c:()=>string, d?:any, e?:() => any}>) {
+function Comp(props:{children?:any, a:string, b:string, "b-t"?:string, "b-t-c"?:string, c:()=>string, d?:any, e?:() => any}) {
     return <>
         <div
             onClick={(event) => {

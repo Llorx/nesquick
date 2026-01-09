@@ -50,6 +50,17 @@ function getAttributeNs(attributes:Map<string, string>, k:string) {
     return null;
 }
 
+function getterFromFunctions<P extends ComponentProps>(props:P) {
+    const res = Object.create(null);
+    for (const k in props) {
+        Object.defineProperty(res, k, {
+            get() {
+                return props[k]();
+            }
+        });
+    }
+    return res;
+}
 export class NesquickComponent<P extends ComponentProps = {}> {
     private _subscriptions = new Subscriptions();
     private _styleSubscriptions:Subscriptions|null = null;
@@ -59,6 +70,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     render(document:VeactDocument):Node {
         subscriptions.set(this._subscriptions);
         if (typeof this._render === "function") {
+            this.props = getterFromFunctions(this.props);
             const element = this._render(this.props);
             if (this._xmlns) {
                 element.setXmlns(this._xmlns);

@@ -28,10 +28,10 @@ test.describe("For", (test, after) => {
         ARRANGE() {
             const component = new NesquickComponent(For as any, {
                 each: () => [0, 1, 2],
-                id(item:any) {
+                id: () => (item:any) => {
                     return item;
                 },
-                children(item:any) {
+                children: () => (item:any) => {
                     return new NesquickComponent("div", {
                         children: [item]
                     })
@@ -52,10 +52,10 @@ test.describe("For", (test, after) => {
             const [getList, setList] = useState([0, 1, 2]);
             const component = new NesquickComponent(For as any, {
                 each: getList,
-                id(item:any) {
+                id: () => (item:any) => {
                     return item;
                 },
-                children(item:any) {
+                children: () => (item:any) => {
                     return new NesquickComponent("div", {
                         children: [item]
                     })
@@ -78,10 +78,10 @@ test.describe("For", (test, after) => {
             const [getList, setList] = useState([0, 1, 2]);
             const component = new NesquickComponent(For as any, {
                 each: getList,
-                id(item:any) {
+                id: () => (item:any) => {
                     return item;
                 },
-                children(item:any) {
+                children: () => (item:any) => {
                     return new NesquickComponent("div", {
                         children: [item]
                     })
@@ -104,10 +104,10 @@ test.describe("For", (test, after) => {
             const [getList, setList] = useState([0, 1, 2]);
             const component = new NesquickComponent(For as any, {
                 each: getList,
-                id(item:any) {
+                id: () => (item:any) => {
                     return item;
                 },
-                children(item:any) {
+                children: () => (item:any) => {
                     return new NesquickComponent("div", {
                         children: [item]
                     })
@@ -130,10 +130,10 @@ test.describe("For", (test, after) => {
             const [getList, setList] = useState([0, 1, 2]);
             const component = new NesquickComponent(For as any, {
                 each: getList,
-                id(item:any) {
+                id: () => (item:any) => {
                     return item;
                 },
-                children(item:any) {
+                children: () => (item:any) => {
                     return new NesquickComponent("div", {
                         children: [item]
                     })
@@ -156,10 +156,10 @@ test.describe("For", (test, after) => {
             const [getList, setList] = useState([0, 1, 2]);
             const component = new NesquickComponent(For as any, {
                 each: getList,
-                id(item:any) {
+                id: () => (item:any) => {
                     return item;
                 },
-                children(item:any) {
+                children: () => (item:any) => {
                     return new NesquickComponent("div", {
                         children: [item]
                     })
@@ -182,10 +182,10 @@ test.describe("For", (test, after) => {
             const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
             const component = new NesquickComponent(For as any, {
                 each: getList,
-                id(item:any) {
+                id: () => (item:any) => {
                     return item;
                 },
-                children(item:any) {
+                children: () => (item:any) => {
                     return new NesquickComponent("div", {
                         children: [item]
                     })
@@ -208,10 +208,10 @@ test.describe("For", (test, after) => {
             const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
             const component = new NesquickComponent(For as any, {
                 each: getList,
-                id(item:any) {
+                id: () => (item:any) => {
                     return item;
                 },
-                children(item:any) {
+                children: () => (item:any) => {
                     return new NesquickComponent("div", {
                         children: [item]
                     })
@@ -236,10 +236,10 @@ test.describe("For", (test, after) => {
             ARRANGE() {
                 const component = new NesquickComponent(For as any, {
                     each: () => [0, 1, 2, 1, 0, 3, 4, 2, 5, 6],
-                    id(item:any) {
+                    id: () => (item:any) => {
                         return item;
                     },
-                    children(item:any) {
+                    children: () => (item:any) => {
                         return new NesquickComponent("div", {
                             children: [item]
                         })
@@ -260,10 +260,10 @@ test.describe("For", (test, after) => {
                 const [getList, setList] = useState([0, 1, 2]);
                 const component = new NesquickComponent(For as any, {
                     each: getList,
-                    id(item:any) {
+                    id: () => (item:any) => {
                         return item;
                     },
-                    children(item:any) {
+                    children: () => (item:any) => {
                         return new NesquickComponent("div", {
                             children: [item]
                         })
@@ -286,10 +286,10 @@ test.describe("For", (test, after) => {
                 const [getList, setList] = useState([0, 1, 2, 3, 2]);
                 const component = new NesquickComponent(For as any, {
                     each: getList,
-                    id(item:any) {
+                    id: () => (item:any) => {
                         return item;
                     },
-                    children(item:any) {
+                    children: () => (item:any) => {
                         return new NesquickComponent("div", {
                             children: [item]
                         })
@@ -312,10 +312,10 @@ test.describe("For", (test, after) => {
                 const [getList, setList] = useState([0, 1, 2]);
                 const component = new NesquickComponent(For as any, {
                     each: getList,
-                    id(item:any) {
+                    id: () => (item:any) => {
                         return item;
                     },
-                    children(item:any) {
+                    children: () => (item:any) => {
                         return new NesquickComponent("div", {
                             children: [item]
                         })
@@ -338,10 +338,10 @@ test.describe("For", (test, after) => {
                 const [getList, setList] = useState([0, 1, 2]);
                 const component = new NesquickComponent(For as any, {
                     each: getList,
-                    id(item:any) {
+                    id: () => (item:any) => {
                         return item;
                     },
-                    children(item:any) {
+                    children: () => (item:any) => {
                         return new NesquickComponent("div", {
                             children: [item]
                         })
@@ -364,10 +364,10 @@ test.describe("For", (test, after) => {
                 const [getList, setList] = useState([0, 1, 1, 2, 1]);
                 const component = new NesquickComponent(For as any, {
                     each: getList,
-                    id(item:any) {
+                    id: () => (item:any) => {
                         return item;
                     },
-                    children(item:any) {
+                    children: () => (item:any) => {
                         return new NesquickComponent("div", {
                             children: [item]
                         })
@@ -390,10 +390,10 @@ test.describe("For", (test, after) => {
                 const [getList, setList] = useState([0, 2, 1, 2, 1, 1, 3, 1]);
                 const component = new NesquickComponent(For as any, {
                     each: getList,
-                    id(item:any) {
+                    id: () => (item:any) => {
                         return item;
                     },
-                    children(item:any) {
+                    children: () => (item:any) => {
                         return new NesquickComponent("div", {
                             children: [item]
                         })
@@ -416,10 +416,10 @@ test.describe("For", (test, after) => {
                 const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
                 const component = new NesquickComponent(For as any, {
                     each: getList,
-                    id(item:any) {
+                    id: () => (item:any) => {
                         return item;
                     },
-                    children(item:any) {
+                    children: () => (item:any) => {
                         return new NesquickComponent("div", {
                             children: [item]
                         })
@@ -442,10 +442,10 @@ test.describe("For", (test, after) => {
                 const [getList, setList] = useState([0, 1, 2, 3, 4, 5, 6, 7]);
                 const component = new NesquickComponent(For as any, {
                     each: getList,
-                    id(item:any) {
+                    id: () => (item:any) => {
                         return item;
                     },
-                    children(item:any) {
+                    children: () => (item:any) => {
                         return new NesquickComponent("div", {
                             children: [item]
                         })
