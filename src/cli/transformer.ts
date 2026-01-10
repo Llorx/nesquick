@@ -30,6 +30,9 @@ function getSingleBody(node:TS.Node) {
 function createSpreadCheckFunction(fName:TS.Identifier) {
     /*
     function(obj, check) {
+        if (!obj) {
+            return obj;
+        }
         const res = Object.create(null);
         for (const k in obj) {
             const v = obj[k];
@@ -49,17 +52,28 @@ function createSpreadCheckFunction(fName:TS.Identifier) {
     const v = TS.factory.createIdentifier("v");
 
     return TS.factory.createFunctionDeclaration(
-        void 0, // modifiers
-        void 0, // asteriskToken
-        fName, // name
-        void 0, // type parameters
+        void 0,
+        void 0,
+        fName,
+        void 0,
         [
             TS.factory.createParameterDeclaration(void 0, void 0, obj),
             TS.factory.createParameterDeclaration(void 0, void 0, check)
         ],
-        void 0, // return type
+        void 0,
         TS.factory.createBlock(
             [
+                // if (!obj) { return obj; }
+                TS.factory.createIfStatement(
+                    TS.factory.createPrefixUnaryExpression(
+                        TS.SyntaxKind.ExclamationToken,
+                        obj
+                    ),
+                    TS.factory.createBlock([
+                        TS.factory.createReturnStatement(obj)
+                    ], true),
+                    void 0
+                ),
                 // const res = Object.create(null);
                 TS.factory.createVariableStatement(
                     void 0,
