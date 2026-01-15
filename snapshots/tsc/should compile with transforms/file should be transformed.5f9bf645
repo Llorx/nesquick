@@ -1,4 +1,4 @@
-ÿo"	validatedT"data"Ì"use strict";
+ÿo"	validatedT"data"¼""use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -12,6 +12,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var jsx_runtime_1 = require("nesquick/jsx-runtime");
+var types_1 = require("../../lib/types");
 function ok(arg) {
     return 123;
 }
@@ -29,9 +30,13 @@ function Comp(props) {
 }
 var p = { a: "a20", b: "a21", c: function () { return "a22"; } };
 ((0, jsx_runtime_1.jsxs)(Comp, { a: function () { return "as5"; }, b: function () { return "as6"; }, "b-t": function () { return "as6t"; }, "b-t-c": function () { return "as6tc".concat(1 + 1); }, c: function () { return function () { return "as7"; }; }, d: function () {
-        return (0, jsx_runtime_1.jsx)(Comp, { a: function () { return p.a; }, b: function () { return p.c(); }, c: function () { return p.c; }, children: function () { return (0, jsx_runtime_1.jsx)("span", {}); } });
-    }, e: function () { return function () { return (0, jsx_runtime_1.jsx)(Comp, { a: function () { return "a11"; }, b: function () { return "a12"; }, c: function () { return function () { return "a13"; }; } }); }; }, children: [(0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)(Comp, { a: function () { return "a14"; }, b: function () { return "a15"; }, c: function () { return function () { return "a16"; }; } }), (0, jsx_runtime_1.jsx)(Comp, __assign({}, _spread_1({ a: "a17", b: "a18", c: function () { return "a19"; }, d: (0, jsx_runtime_1.jsx)(Comp, { a: function () { return "a20"; }, b: function () { return "a20"; }, c: function () { return function () { return "as7"; }; } }) }, false))), (0, jsx_runtime_1.jsx)(Comp, __assign({}, _spread_1(p, false)))] }), (0, jsx_runtime_1.jsx)("div", {}), function () { return (0, jsx_runtime_1.jsx)("a", {}); }] }));
+        return (0, jsx_runtime_1.jsx)(Comp, { a: function () { return p.a; }, b: function () { return p.c(); }, c: function () { return p.c; }, children: function () { return function () { return (0, jsx_runtime_1.jsx)("span", {}); }; } });
+    }, e: function () { return function () { return (0, jsx_runtime_1.jsx)(Comp, { a: function () { return "a11"; }, b: function () { return "a12"; }, c: function () { return function () { return "a13"; }; } }); }; }, children: [(0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)(Comp, { a: function () { return "a14"; }, b: function () { return "a15"; }, c: function () { return function () { return "a16"; }; } }), (0, jsx_runtime_1.jsx)(Comp, __assign({}, _spread_1({ a: "a17", b: "a18", c: function () { return "a19"; }, d: (0, jsx_runtime_1.jsx)(Comp, { a: function () { return "a20"; }, b: function () { return "a20"; }, c: function () { return function () { return "as7"; }; } }) }, false))), (0, jsx_runtime_1.jsx)(Comp, __assign({}, _spread_1(p, false)))] }), function () { return (0, jsx_runtime_1.jsx)("div", {}); }, function () { return function () { return (0, jsx_runtime_1.jsx)("a", {}); }; }] }));
+((0, jsx_runtime_1.jsx)(types_1.For, { each: function () { return [1, 2, 3]; }, children: function () { return function (item, i) { return (0, jsx_runtime_1.jsxs)("span", { children: [item, "-", i] }); }; } }));
 function _spread_1(obj, check) {
+    if (!obj) {
+        return obj;
+    }
     var res = Object.create(null);
     for (var k in obj) {
         var v = obj[k];

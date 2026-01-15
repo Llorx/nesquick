@@ -197,14 +197,6 @@ export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
             return { node, hasCallExpression };
         };
         const visitGeneric = (node:TS.Node, options:Options) => {
-            // TODO: No hace falta hasSpread seguramente
-            // solo mirando si es "TS.isJsxSpreadAttribute(node)" ya se puede pasar por el createSpreadCheckFunction
-            // y pasar el visitGeneric por dentro del spread por si hay que transformar algo. Testearlo (...{cosas: () => <div a={val()}></div>}) 7 a deberá generar un arrow apuntando a val
-            // después, si es userComponent, crea arrow function con lo que sea que haya
-            // si no es userComponent, hace lo de:
-            // - quitar el () de una función
-            // - pasar referencia si es referencia
-            // - 
             let hasCallExpression = TS.isCallExpression(node);
             if (TS.isJsxSpreadAttribute(node)) {
                 hasSpreadChecker = true;
@@ -217,6 +209,11 @@ export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
                     );
                     node = TS.factory.updateJsxSpreadAttribute(node, callExpression);
                 }
+            } else if (TS.isJsxElement(node)) {
+                const firstLetter = node.openingElement.tagName.getText()[0];
+                const userComponent = firstLetter !== firstLetter.toLowerCase(); // JSX user components always start with a capital letter
+                const res = processNode(node, { userComponent });
+                node = res.node;
             } else if (TS.isJsxOpeningLikeElement(node)) {
                 const firstLetter = node.tagName.getText()[0];
                 const userComponent = firstLetter !== firstLetter.toLowerCase(); // JSX user components always start with a capital letter

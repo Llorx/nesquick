@@ -1,6 +1,6 @@
 {
   "name": "nesquick",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "React-like library with focus on drawing performance",
   "types": "./lib/types/index.d.ts",
   "main": "./lib/index.js",

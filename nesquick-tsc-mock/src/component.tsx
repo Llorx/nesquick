@@ -1,3 +1,5 @@
+import { For } from "../../lib/types";
+
 function ok(arg?:any) {
     return 123;
 }
@@ -77,3 +79,5 @@ const p = {a:"a20", b:"a21", c: () => "a22"};
     {<div></div>}
     {() => <a></a>}
 </Comp>);
+
+(<For each={[1,2,3]}>{(item, i) => <span>{item}-{i()}</span>}</For>)
