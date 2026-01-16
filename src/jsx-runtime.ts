@@ -30,7 +30,8 @@ export namespace JSX {
         [k:string]:any;
         style?:Style;
         xmlns?:string|null;
-        ref?:((el:T)=>void)|null;
+        "nq:ref"?:((el:T)=>void)|null;
+        "nq:update"?:((el:T)=>void)|null;
     }
     export type Style = StyleProps|string;
     export type StyleProps = {[K in keyof CSSStyleDeclaration]?:CSSStyleDeclaration[K] extends Function ? never : CSSStyleDeclaration[K]|(()=>CSSStyleDeclaration[K])};

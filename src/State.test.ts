@@ -6,8 +6,11 @@ import test, { After } from "arrange-act-assert";
 import * as State from "./State";
 
 test.describe("State", (test, after) => {
-    global.requestAnimationFrame = process.nextTick as any;
-    after(null, () => global.requestAnimationFrame = void 0 as any);
+    global.requestAnimationFrame = globalThis.setImmediate as any;
+    after(null, async () => {
+        await waitRenderTick(); // wait all pending states to run
+        global.requestAnimationFrame = void 0 as any;
+    });
     function newSubscriptions(after:After) {
         const subscriptions = new State.Subscriptions();
         after(State.subscriptions.set(subscriptions), () => State.subscriptions.reset());
@@ -504,6 +507,137 @@ test.describe("State", (test, after) => {
                 sub2.assert(0);
             }
         }
+    });
+    test.describe("afterRender", test => {
+        test("should not be called immediately", {
+            ARRANGE() {
+                const callOrder:string[] = [];
+                return { callOrder };
+            },
+            ACT({ callOrder }) {
+                State.afterRender(() => {
+                    callOrder.push("afterRender1");
+                });
+            },
+            async ASSERT(_, { callOrder }) {
+                Assert.deepStrictEqual(callOrder, []);
+            }
+        });
+        test("should run after a dynamic render update if the render is run before the afterRender", {
+            ARRANGE() {
+                const [ getCounter, setCounter ] = State.useState(0);
+                const callOrder:string[] = [];
+                newRenderSub(() => {
+                    callOrder.push("useRender");
+                    return getCounter();
+                });
+                return { callOrder, setCounter };
+            },
+            async ACT({ callOrder, setCounter }) {
+                setCounter(1);
+                State.afterRender(() => {
+                    callOrder.push("afterRender");
+                });
+                await waitRenderTick();
+            },
+            ASSERT(_, { callOrder }) {
+                Assert.deepStrictEqual(callOrder, ["useRender", "useRender", "afterRender"]);
+            }
+        });
+        test("should run after a dynamic render update if the render is run after the afterRender", {
+            ARRANGE() {
+                const [ getCounter, setCounter ] = State.useState(0);
+                const callOrder:string[] = [];
+                newRenderSub(() => {
+                    callOrder.push("useRender");
+                    return getCounter();
+                });
+                return { callOrder, setCounter };
+            },
+            async ACT({ callOrder, setCounter }) {
+                State.afterRender(() => {
+                    callOrder.push("afterRender");
+                });
+                setCounter(1);
+                await waitRenderTick();
+            },
+            ASSERT(_, { callOrder }) {
+                Assert.deepStrictEqual(callOrder, ["useRender", "useRender", "afterRender"]);
+            }
+        });
+        test("should run alone", {
+            ARRANGE() {
+                const callOrder:string[] = [];
+                return { callOrder };
+            },
+            async ACT({ callOrder }) {
+                State.afterRender(() => {
+                    callOrder.push("afterRender");
+                });
+                await waitRenderTick();
+            },
+            ASSERT(_, { callOrder }) {
+                Assert.deepStrictEqual(callOrder, ["afterRender"]);
+            }
+        });
+        test("should run in order", {
+            ARRANGE() {
+                const callOrder:string[] = [];
+                return { callOrder };
+            },
+            async ACT({ callOrder }) {
+                State.afterRender(() => {
+                    callOrder.push("afterRender1");
+                });
+                State.afterRender(() => {
+                    callOrder.push("afterRender2");
+                });
+                State.afterRender(() => {
+                    callOrder.push("afterRender3");
+                });
+                await waitRenderTick();
+            },
+            ASSERT(_, { callOrder }) {
+                Assert.deepStrictEqual(callOrder, ["afterRender1", "afterRender2", "afterRender3"]);
+            }
+        });
+        test("should not run afterRender inside afterRender in the same tick", {
+            ARRANGE() {
+                const callOrder:string[] = [];
+                return { callOrder };
+            },
+            async ACT({ callOrder }) {
+                State.afterRender(() => {
+                    callOrder.push("afterRender1");
+                    State.afterRender(() => {
+                        callOrder.push("afterRender2");
+                    });
+                });
+                await waitRenderTick();
+            },
+            ASSERT(_, { callOrder }) {
+                Assert.deepStrictEqual(callOrder, ["afterRender1"]);
+            }
+        });
+        test("should run afterRender inside afterRender in the next tick", {
+            ARRANGE() {
+                const callOrder:string[] = [];
+                return { callOrder };
+            },
+            async ACT({ callOrder }) {
+                State.afterRender(() => {
+                    callOrder.push("afterRender1");
+                    State.afterRender(() => {
+                        callOrder.push("afterRender2");
+                    });
+                });
+                await waitRenderTick();
+                await waitRenderTick();
+            },
+            ASSERT(_, { callOrder }) {
+                Assert.deepStrictEqual(callOrder, ["afterRender1", "afterRender2"]);
+            }
+        });
     });
     test.describe("useMemo", test => {
         test("should not call callback on creation", {

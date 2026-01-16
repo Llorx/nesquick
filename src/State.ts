@@ -28,6 +28,7 @@ let pendingReactor:{
     first:Subscription<any>;
     last:Subscription<any>;
 }|null = null;
+const onRenders:(()=>void)[] = [];
 function renderReactor(reactor:Subscription<any>, instant:boolean) {
     if (instant) {
         runSubscription(reactor);
@@ -57,6 +58,9 @@ function renderReactors() {
         next = n!;
     } while (next);
     pendingReactor = null;
+    for (const cb of onRenders.splice(0)) {
+        cb();
+    }
 }
 
 export class Subscriptions {
@@ -109,6 +113,17 @@ export function useEffect<T>(cb:()=>T, reaction:((data:T, lastReaction:boolean)=
 export function useRender<T>(cb:()=>T, reaction:((data:T, lastReaction:boolean)=>void)|null = null) {
     const sub = newSubscription(cb, reaction, false);
     runSubscription(sub);
+}
+
+const NopSubscription = newSubscription(() => {}, null, false);
+cancelSubscription(NopSubscription);
+export function afterRender(cb:()=>void) {
+    onRenders.push(cb);
+    if (pendingReactor == null) {
+        // dummy reactor to defer afterRender after all possible future renders finish
+        NopSubscription.pending = false;
+        renderReactor(NopSubscription, false);
+    }
 }
 const enum MemoState {
     NOTIFIED,

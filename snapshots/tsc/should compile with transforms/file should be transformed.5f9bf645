@@ -1,4 +1,4 @@
-ÿo"	validatedT"data"¼""use strict";
+ÿo"	validatedT"data"ö""use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -20,7 +20,7 @@ var pepe = {
     a: function (arg) { return 123; }
 };
 function Comp(props) {
-    return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, { children: (0, jsx_runtime_1.jsxs)("div", { onClick: function (event) {
+    return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, { children: (0, jsx_runtime_1.jsxs)("div", { "nq:ref": function () { }, "nq:update": function () { }, onClick: function (_event) {
                 props.c();
             }, a: props.a, b: props.b, "b-arrow": function () { return (function () { return props.b; })(); }, "c-ref": props.c, "c-call": function () { return props.c(); }, expression: 123, "func-call": ok, "func-call-args": function () { return ok(1); }, "func-ref": ok, "self-call": function () { return (function () { return 123; })(); }, "self-call-func": function () { return (function () { return ok(); })(); }, "attr-call": function () { return pepe.a(); }, "attr-call-args": function () { return pepe.a(1); }, "attr-ref": pepe.a, "expression-call": function () { return 123; }, "expression-call-args": function (v) { return 123 + v; }, comp: 1 + 2, "simple-ternary": 1 === 1 ? 2 : 3, "ref-ternary": 1 === 1 ? 2 : ok, "call-ternary": function () { return 1 === 1 ? 2 : ok(); }, "comp-call": function () { return 1 + ok(); }, "comp-call-args": function () { return 1 + ok(1); }, "comp-sub-call": function () { return ok(); }, "comp-sub-call-args": function () { return ok(1); }, "arrow-return": function () {
                 return ok();

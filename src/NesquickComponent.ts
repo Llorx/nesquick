@@ -1,4 +1,4 @@
-import { subscriptions, Subscriptions, useRender } from "./State";
+import { afterRender, subscriptions, Subscriptions, useRender } from "./State";
 
 export type Child = NesquickComponent<any>|NesquickFragment|string|boolean|number|null|undefined|ChildFunc;
 export type Children = Child|Child[];
@@ -65,6 +65,11 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     private _subscriptions = new Subscriptions();
     private _styleSubscriptions:Subscriptions|null = null;
     private _xmlns:XmlNs|null = null;
+    private _onUpdate:{
+        waiting:boolean;
+        element:Element;
+        cb:(el:Element)=>void;
+    }|null = null;
     protected _children:NesquickChild[] = [];
     constructor(private _render:string|FunctionComponent<P>, protected props:P) {}
     render(document:VeactDocument):Node {
@@ -111,8 +116,15 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             }
         }
         this._renderChildren(document, element, this.props.children);
-        if (this.props.ref != null) {
-            this.props.ref(element);
+        if (typeof this.props["nq:ref"] === "function") {
+            this.props["nq:ref"](element);
+        }
+        if (typeof this.props["nq:update"] === "function") {
+            this._onUpdate = {
+                waiting: true,
+                element: element,
+                cb: this.props["nq:update"]
+            };
         }
         this.props = {} as P; // GC unused properties
         subscriptions.reset();
@@ -121,9 +133,18 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     setXmlns(xmlns:XmlNs|null) {
         this._xmlns = xmlns;
     }
+    private _onUpdated() {
+        if (this._onUpdate?.waiting) {
+            this._onUpdate.waiting = false;
+            afterRender(() => {
+                this._onUpdate!.waiting = true;
+                this._onUpdate!.cb(this._onUpdate!.element);
+            });
+        }
+    }
     private _renderPropsNs(attributes:Map<string, string>, element:Element, props:ComponentProps) {
         for (const k in props) {
-            if (k !== "children" && k !== "xmlns" && k !== "ref") {
+            if (k !== "children" && k !== "xmlns" && k !== "nq:ref" && k !== "nq:update") {
                 if (k === "style") {
                     this._renderStyle(element as HTMLElement, props[k]);
                 } else if (typeof props[k] === "function") {
@@ -135,10 +156,12 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                         if (attribute) {
                             useRender(props[k], v => {
                                 element.setAttributeNS(attribute.namespace, attribute.name, String(v));
+                                this._onUpdated();
                             });
                         } else {
                             useRender(props[k], v => {
                                 element.setAttribute(k, String(v));
+                                this._onUpdated();
                             });
                         }
                     }
@@ -155,7 +178,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     };
     private _renderProps(element:Element, props:ComponentProps) {
         for (const k in props) {
-            if (k !== "children" && k !== "xmlns" && k !== "ref") {
+            if (k !== "children" && k !== "xmlns" && k !== "nq:ref" && k !== "nq:update") {
                 if (k === "style") {
                     this._renderStyle(element as HTMLElement, props[k]);
                 } else if (typeof props[k] === "function") {
@@ -165,6 +188,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                     } else {
                         useRender(props[k], v => {
                             element.setAttribute(k, String(v));
+                            this._onUpdated();
                         });
                     }
                 } else {
@@ -178,6 +202,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             if (typeof styles[k] === "function") {
                 useRender(styles[k], v => {
                     element.style[k] = String(v);
+                    this._onUpdated();
                 });
             } else {
                 element.style[k] = String(styles[k]);
@@ -212,6 +237,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                             break;
                         }
                     }
+                    this._onUpdated();
                 });
                 break;
             }
@@ -248,6 +274,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                             }
                             this._renderChild(document, parent, ch, children);
                         }
+                        this._onUpdated();
                     });
                 } else {
                     this._renderChild(document, parent, this._pushChild(), child);

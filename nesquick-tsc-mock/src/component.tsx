@@ -9,7 +9,9 @@ const pepe = {
 function Comp(props:{children?:any, a:string, b:string, "b-t"?:string, "b-t-c"?:string, c:()=>string, d?:any, e?:() => any}) {
     return <>
         <div
-            onClick={(event) => {
+            nq:ref={() => {}}
+            nq:update={() => {}}
+            onClick={(_event) => {
                 props.c();
             }}
             a={props.a}

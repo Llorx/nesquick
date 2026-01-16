@@ -649,6 +649,268 @@ test.describe("NesquickComponent", (test, after) => {
             });
         });
     });
+    test.describe("nq:ref", test => {
+        test("should call ref with the element", {
+            ARRANGE() {
+                let refElement:HTMLElement|null = null;
+                const component = new NesquickComponent("div", {
+                    "nq:ref": (el:HTMLElement) => {
+                        refElement = el;
+                    }
+                });
+                const document = newDocument();
+                return { component, document, refElement: () => refElement };
+            },
+            ACT({ component, document }) {
+                return component.render(document);
+            },
+            ASSERT(node, { refElement }) {
+                Assert.strictEqual(refElement(), node);
+            }
+        });
+        test("should call ref with the correct element type", {
+            ARRANGE() {
+                let refElement:HTMLElement|null = null;
+                const component = new NesquickComponent("button", {
+                    "nq:ref": (el:HTMLElement) => {
+                        refElement = el;
+                    }
+                });
+                const document = newDocument();
+                return { component, document, refElement: () => refElement };
+            },
+            ACT({ component, document }) {
+                return component.render(document);
+            },
+            ASSERT(_, { refElement }) {
+                Assert.strictEqual(refElement()!.tagName, "BUTTON");
+            }
+        });
+        test("should call ref with element that has props", {
+            ARRANGE() {
+                let refElement:HTMLElement|null = null;
+                const component = new NesquickComponent("div", {
+                    id: "test-id",
+                    class: "test-class",
+                    "nq:ref": (el:HTMLElement) => {
+                        refElement = el;
+                    }
+                });
+                const document = newDocument();
+                return { component, document, refElement: () => refElement };
+            },
+            ACT({ component, document }) {
+                return component.render(document);
+            },
+            ASSERTS: {
+                "element should have the correct id"(_, { refElement }) {
+                    Assert.strictEqual(refElement()!.id, "test-id");
+                },
+                "element should have the correct class"(_, { refElement }) {
+                    Assert.strictEqual(refElement()!.className, "test-class");
+                }
+            }
+        });
+        test("should call ref with element that can be modified", {
+            ARRANGE() {
+                let refElement:HTMLElement|null = null;
+                const component = new NesquickComponent("div", {
+                    "nq:ref": (el:HTMLElement) => {
+                        refElement = el;
+                    }
+                });
+                const document = newDocument();
+                return { component, document, refElement: () => refElement };
+            },
+            ACT({ component, document, refElement }) {
+                const node = component.render(document);
+                refElement()!.setAttribute("data-test", "modified");
+                return node;
+            },
+            ASSERT(_, { refElement }) {
+                Assert.strictEqual(refElement()!.getAttribute("data-test"), "modified");
+            }
+        });
+    });
+    test.describe("nq:update", test => {
+        test("should call update with the element", {
+            ARRANGE() {
+                let refElement:HTMLElement|null = null;
+                const [ getId, setId ] = useState("initial");
+                const component = new NesquickComponent("div", {
+                    id: getId,
+                    "nq:update": (el:HTMLElement) => {
+                        refElement = el;
+                    }
+                });
+                const document = newDocument();
+                const node = component.render(document);
+                return { node, component, document, setId, refElement: () => refElement };
+            },
+            async ACT({ setId }) {
+                setId("changed");
+                await waitRenderTick();
+            },
+            ASSERT(_, { node, refElement }) {
+                Assert.strictEqual(refElement(), node);
+            }
+        });
+        test("should not call update on first render", {
+            ARRANGE() {
+                let updateCalled = false;
+                const component = new NesquickComponent("div", {
+                    "nq:update": () => {
+                        updateCalled = true;
+                    }
+                });
+                const document = newDocument();
+                return { component, document, updateCalled: () => updateCalled };
+            },
+            async ACT({ component, document }) {
+                component.render(document);
+                await waitRenderTick();
+            },
+            ASSERT(_, { updateCalled }) {
+                Assert.strictEqual(updateCalled(), false);
+            }
+        });
+        test("should call update after state change", {
+            ARRANGE() {
+                const [ getId, setId ] = useState("initial");
+                let updateCount = 0;
+                const component = new NesquickComponent("div", {
+                    id: getId,
+                    "nq:update": () => {
+                        updateCount++;
+                    }
+                });
+                const document = newDocument();
+                component.render(document);
+                return { setId, updateCount: () => updateCount };
+            },
+            async ACT({ setId }) {
+                setId("changed");
+                await waitRenderTick();
+            },
+            ASSERT(_, { updateCount }) {
+                Assert.strictEqual(updateCount(), 1);
+            }
+        });
+        test("should call update once after multiple state changes", {
+            ARRANGE() {
+                const [ getId, setId ] = useState("initial");
+                const [ getClassName, setClassName ] = useState("initial-class");
+                let updateCount = 0;
+                const component = new NesquickComponent("div", {
+                    id: getId,
+                    className: getClassName,
+                    "nq:update": () => {
+                        updateCount++;
+                    }
+                });
+                const document = newDocument();
+                component.render(document);
+                return { setId, setClassName, updateCount: () => updateCount };
+            },
+            async ACT({ setId, setClassName }) {
+                setId("changed");
+                setClassName("changed-class");
+                await waitRenderTick();
+            },
+            ASSERT(_, { updateCount }) {
+                Assert.strictEqual(updateCount(), 1);
+            }
+        });
+        test("should call update with the element on state change", {
+            ARRANGE() {
+                const [ getId, setId ] = useState("initial");
+                let updateElement:HTMLElement|null = null;
+                const component = new NesquickComponent("div", {
+                    id: getId,
+                    "nq:update": (el:HTMLElement) => {
+                        updateElement = el;
+                    }
+                });
+                const document = newDocument();
+                const node = component.render(document);
+                return { setId, updateElement: () => updateElement, node };
+            },
+            async ACT({ setId }) {
+                setId("changed");
+                await waitRenderTick();
+            },
+            ASSERT(_, { updateElement, node }) {
+                Assert.strictEqual(updateElement(), node);
+            }
+        });
+        test("should call update with element that has updated attributes", {
+            ARRANGE() {
+                const [ getId, setId ] = useState("initial");
+                let capturedId:string|null = null;
+                const component = new NesquickComponent("div", {
+                    id: getId,
+                    "nq:update": (el:HTMLElement) => {
+                        capturedId = el.id;
+                    }
+                });
+                const document = newDocument();
+                component.render(document);
+                return { setId, capturedId: () => capturedId };
+            },
+            async ACT({ setId }) {
+                await waitRenderTick(); // First update
+                setId("updated");
+                await waitRenderTick(); // Second update
+            },
+            ASSERT(_, { capturedId }) {
+                Assert.strictEqual(capturedId(), "updated");
+            }
+        });
+        test("should not call update if it's null", {
+            ARRANGE() {
+                const [ getId, setId ] = useState("initial");
+                const component = new NesquickComponent("div", {
+                    id: getId,
+                    "nq:update": null
+                });
+                const document = newDocument();
+                const node = component.render(document) as HTMLElement;
+                return { setId, node };
+            },
+            async ACT({ setId }) {
+                await waitRenderTick();
+                setId("changed");
+                await waitRenderTick();
+            },
+            ASSERT(_, { node }) {
+                Assert.strictEqual(node.id, "changed");
+            }
+        });
+        test("should call update multiple times for separate state changes", {
+            ARRANGE() {
+                const [ getId, setId ] = useState("initial");
+                const updateCalls:string[] = [];
+                const component = new NesquickComponent("div", {
+                    id: getId,
+                    "nq:update": (el:HTMLElement) => {
+                        updateCalls.push(el.id);
+                    }
+                });
+                const document = newDocument();
+                component.render(document);
+                return { setId, updateCalls };
+            },
+            async ACT({ setId }) {
+                setId("first");
+                await waitRenderTick();
+                setId("second");
+                await waitRenderTick();
+            },
+            ASSERT(_, { updateCalls }) {
+                Assert.deepStrictEqual(updateCalls, ["first", "second"]);
+            }
+        });
+    });
     test.describe("events", test => {
         test("should not run event callbacks on creation", {
             ARRANGE() {
