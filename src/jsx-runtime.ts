@@ -3,22 +3,16 @@ import { NesquickFragment } from "./NesquickFragment";
 
 export const Fragment = Symbol();
 export function jsxs<P extends ComponentProps>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null) {
-    if (type === Fragment) {
-        return new NesquickFragment(props.children);
-    }
-    if (key !== undefined) {
-        (props as any).key = key;
-    }
-    return new NesquickComponent(type, props);
+    return jsx(type, props, key, true);
 }
-export function jsx<P extends ComponentProps>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null) {
+export function jsx<P extends ComponentProps>(type:string|FunctionComponent<P>|typeof Fragment, props:P, key?:string|number|null, jsxs = false) {
     if (type === Fragment) {
-        return new NesquickFragment([props.children]);
+        return new NesquickFragment([props.children], jsxs);
     }
     if (key !== undefined) {
         (props as any).key = key;
     }
-    return new NesquickComponent(type, props);
+    return new NesquickComponent(type, props, jsxs);
 }
 
 export type Component<P extends Record<any, any> = {}> = (props:P) => JSX.Element;

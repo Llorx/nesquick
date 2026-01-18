@@ -5,9 +5,9 @@ export type Children = Child|Child[];
 export type ChildFunc = () => Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[];
 export type ComponentProps = Record<string, any>;
 
-export type FunctionComponent<P extends ComponentProps = {}> = (props:P) => NesquickComponent<P>;
+export type FunctionComponent<P extends ComponentProps = {}> = (props:P) => NesquickComponent<any>;
 
-export type VeactDocument = Pick<Document, "createElement"|"createElementNS"|"createTextNode"|"createDocumentFragment"|"createComment">;
+export type NesquickDocument = Pick<Document, "createElement"|"createElementNS"|"createTextNode"|"createDocumentFragment"|"createComment">;
 
 type NesquickChild = {
     node:Node|null;
@@ -50,16 +50,56 @@ function getAttributeNs(attributes:Map<string, string>, k:string) {
     return null;
 }
 
-function getterFromFunctions<P extends ComponentProps>(props:P) {
-    const res = Object.create(null);
+function getterFromFunctionsSingleChildren<P extends ComponentProps>(props:P) {
+    const res = {} as P & {children:Child};
     for (const k in props) {
-        Object.defineProperty(res, k, {
-            get() {
-                return props[k]();
+        if (k === "children") {
+            const v = props.children;
+            if (typeof v === "function" && !(v instanceof NesquickComponent)) {
+                Object.defineProperty(res, "children", {
+                    get() {
+                        return v();
+                    }
+                });
+            } else {
+                res.children = v;
             }
-        });
+        } else {
+            const v = props[k];
+            Object.defineProperty(res, k, {
+                get() {
+                    return v();
+                }
+            });
+        }
     }
-    return res;
+    return res as P;
+}
+function getterFromFunctionsArrayChildren<P extends ComponentProps>(props:P) {
+    const res = {} as P & {children:Child[]};
+    for (const k in props) {
+        if (k === "children") {
+            res.children = props.children;
+            for (let i = 0; i < props.children.length; i++) {
+                const v = props.children[i];
+                if (typeof v === "function" && !(v instanceof NesquickComponent)) {
+                    Object.defineProperty(res.children, i, {
+                        get() {
+                            return v();
+                        }
+                    });
+                }
+            }
+        } else {
+            const v = props[k];
+            Object.defineProperty(res, k, {
+                get() {
+                    return v();
+                }
+            });
+        }
+    }
+    return res as P;
 }
 export class NesquickComponent<P extends ComponentProps = {}> {
     private _subscriptions = new Subscriptions();
@@ -71,11 +111,11 @@ export class NesquickComponent<P extends ComponentProps = {}> {
         cb:(el:Element)=>void;
     }|null = null;
     protected _children:NesquickChild[] = [];
-    constructor(private _render:string|FunctionComponent<P>, protected props:P) {}
-    render(document:VeactDocument):Node {
+    constructor(private _render:string|FunctionComponent<P>, protected props:P, protected jsxs = false) {}
+    render(document:NesquickDocument):Node {
         subscriptions.set(this._subscriptions);
         if (typeof this._render === "function") {
-            this.props = getterFromFunctions(this.props);
+            this.props = this.jsxs ? getterFromFunctionsArrayChildren(this.props) : getterFromFunctionsSingleChildren(this.props);
             const element = this._render(this.props);
             if (this._xmlns) {
                 element.setXmlns(this._xmlns);
@@ -255,7 +295,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             }
         }
     }
-    protected _renderChildren(document:VeactDocument, parent:NesquickParent, children?:Children) {
+    protected _renderChildren(document:NesquickDocument, parent:NesquickParent, children?:Children) {
         if (children != null) {
             if (!Array.isArray(children)) {
                 children = [children];
@@ -331,7 +371,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             }
         }
     }
-    protected _renderChild(document:VeactDocument, parent:NesquickParent, nesquickChild:NesquickChild, child:Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[]) {
+    protected _renderChild(document:NesquickDocument, parent:NesquickParent, nesquickChild:NesquickChild, child:Exclude<Child, ChildFunc>|Exclude<Child, ChildFunc>[]) {
         if (nesquickChild.component != null) {
             nesquickChild.component.dispose();
         } else if (nesquickChild.fragment != null) {

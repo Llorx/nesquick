@@ -9,6 +9,7 @@ function getSingleIdentifier(node:TS.Node) {
     node.forEachChild(node => {
         if (TS.isIdentifier(node)) {
             if (identifier != null) {
+                identifier = null;
                 return node; // break
             }
             identifier = node;
@@ -182,6 +183,16 @@ function createSpreadCheckFunction(fName:TS.Identifier) {
         )
     );
 }
+function arrowify(node:TS.ConciseBody) {
+    return TS.factory.createArrowFunction(
+        void 0,
+        void 0,
+        [],
+        void 0,
+        TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken),
+        node
+    );
+}
 
 export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
     return sourceFile => {
@@ -197,7 +208,8 @@ export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
             return { node, hasCallExpression };
         };
         const visitGeneric = (node:TS.Node, options:Options) => {
-            let hasCallExpression = TS.isCallExpression(node);
+            // hasCallExpression is anything that could call a function, like getters or direct calls
+            let hasCallExpression = TS.isCallExpression(node) || TS.isElementAccessExpression(node) || TS.isPropertyAccessExpression(node);
             if (TS.isJsxSpreadAttribute(node)) {
                 hasSpreadChecker = true;
                 const expression = visitGeneric(node.expression, {}).node;
@@ -209,17 +221,11 @@ export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
                     );
                     node = TS.factory.updateJsxSpreadAttribute(node, callExpression);
                 }
-            } else if (TS.isJsxElement(node)) {
-                const firstLetter = node.openingElement.tagName.getText()[0];
+            } else if (TS.isJsxElement(node) || TS.isJsxSelfClosingElement(node)) {
+                const firstLetter = TS.isJsxSelfClosingElement(node) ? node.tagName.getText()[0] : node.openingElement.tagName.getText()[0];
                 const userComponent = firstLetter !== firstLetter.toLowerCase(); // JSX user components always start with a capital letter
                 const res = processNode(node, { userComponent });
                 node = res.node;
-            } else if (TS.isJsxOpeningLikeElement(node)) {
-                const firstLetter = node.tagName.getText()[0];
-                const userComponent = firstLetter !== firstLetter.toLowerCase(); // JSX user components always start with a capital letter
-                const res = processNode(node, { userComponent });
-                node = res.node;
-                hasCallExpression = hasCallExpression || res.hasCallExpression;
             } else if (TS.isJsxAttribute(node)) {
                 node = TS.visitEachChild(node, node => {
                     const res = visitGeneric(node, { ...options, isJsxAttribute: true });
@@ -235,12 +241,20 @@ export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
                 } else {
                     node = TS.factory.createJsxExpression(void 0, returnNode);
                 }
+            } else if (TS.isFunctionLike(node)) {
+                node = TS.visitEachChild(node, node => {
+                    const res = visitGeneric(node, { ...options, isJsxAttribute: false });
+                    return res.node;
+                }, context);
             } else {
                 node = TS.visitEachChild(node, node => {
                     const res = visitGeneric(node, { ...options, isJsxAttribute: false });
                     hasCallExpression = hasCallExpression || res.hasCallExpression;
                     return res.node;
                 }, context);
+            }
+            if (TS.isJsxChild(node) && !TS.isJsxText(node) && !TS.isJsxExpression(node) && options.userComponent) {
+                node = TS.factory.createJsxExpression(void 0, arrowify(node));
             }
             return { node, hasCallExpression };
         };
@@ -259,17 +273,8 @@ export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
             }
             const res = visitGeneric(node, {});
             node = res.node;
-            if (TS.isExpression(node)) {
-                if (options.userComponent || (res.hasCallExpression && !TS.isFunctionLike(node) && !TS.isJsxElement(node) && !TS.isJsxOpeningLikeElement(node))) {
-                    node = TS.factory.createArrowFunction(
-                        void 0,
-                        void 0,
-                        [],
-                        void 0,
-                        TS.factory.createToken(TS.SyntaxKind.EqualsGreaterThanToken),
-                        node
-                    );
-                }
+            if (TS.isConciseBody(node) && (options.userComponent || res.hasCallExpression)) {
+                node = arrowify(node);
             }
             return node;
         };

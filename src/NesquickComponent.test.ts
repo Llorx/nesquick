@@ -648,6 +648,237 @@ test.describe("NesquickComponent", (test, after) => {
                 });
             });
         });
+        test.describe("custom components", test => {
+            test.describe("with state in children array", test => {
+                test("should render function component with state-linked child", {
+                    ARRANGE() {
+                        const [ getText, setText ] = useState("initial");
+                        const CustomComponent = (props:{children:any[]}) => {
+                            return new NesquickComponent("div", {
+                                class: "custom",
+                                children: () => props.children[1]
+                            });
+                        };
+                        const component = new NesquickComponent(CustomComponent, {
+                            children: ["text1", getText, "text2"]
+                        }, true);
+                        const document = newDocument();
+                        return { component, document, setText };
+                    },
+                    ACT({ component, document }) {
+                        return component.render(document);
+                    },
+                    ASSERT(res, { document }) {
+                        assertHTML(document, res, `<div class="custom">initial</div>`);
+                    }
+                });
+                test("should update single string child in function component", {
+                    ARRANGE() {
+                        const [ getText, setText ] = useState("initial");
+                        const CustomComponent = (props:{children:any[]}) => {
+                            return new NesquickComponent("div", {
+                                class: "custom",
+                                children: () => props.children[1]
+                            });
+                        };
+                        const component = new NesquickComponent(CustomComponent, {
+                            children: ["text1", getText, "text2"]
+                        }, true);
+                        const document = newDocument();
+                        const div = component.render(document);
+                        return { setText, div, document };
+                    },
+                    async ACT({ setText }) {
+                        setText("updated");
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { div, document }) {
+                        assertHTML(document, div, `<div class="custom">updated</div>`);
+                    }
+                });
+                test("should update from string to array of strings", {
+                    ARRANGE() {
+                        const [ getChild, setChild ] = useState<string|string[]>("initial");
+                        const CustomComponent = (props:{children:any[]}) => {
+                            return new NesquickComponent("div", {
+                                class: "custom",
+                                children: () => props.children[1]
+                            });
+                        };
+                        const component = new NesquickComponent(CustomComponent, {
+                            children: ["text1", getChild, "text2"]
+                        }, true);
+                        const document = newDocument();
+                        const div = component.render(document);
+                        return { setChild, div, document };
+                    },
+                    async ACT({ setChild }) {
+                        setChild(["updated1", "updated2"]);
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { div, document }) {
+                        assertHTML(document, div, `<div class="custom">updated1updated2<!--Fragment--></div>`);
+                    }
+                });
+                test("should update from string to NesquickComponent", {
+                    ARRANGE() {
+                        const [ getChild, setChild ] = useState<string|NesquickComponent<any>>("initial");
+                        const CustomComponent = (props:{children:any[]}) => {
+                            return new NesquickComponent("div", {
+                                class: "custom",
+                                children: () => props.children[1]
+                            });
+                        };
+                        const component = new NesquickComponent(CustomComponent, {
+                            children: ["text1", getChild, "text2"]
+                        }, true);
+                        const document = newDocument();
+                        const div = component.render(document);
+                        return { setChild, div, document };
+                    },
+                    async ACT({ setChild }) {
+                        setChild(new NesquickComponent("span", { children: ["nested"] }));
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { div, document }) {
+                        assertHTML(document, div, `<div class="custom"><span>nested</span></div>`);
+                    }
+                });
+                test("should handle multiple state-linked children", {
+                    ARRANGE() {
+                        const [ getText1, setText1 ] = useState("first");
+                        const [ getText2, setText2 ] = useState("second");
+                        const CustomComponent = (props:{children:any[]}) => {
+                            return new NesquickComponent("div", {
+                                class: "custom",
+                                children: () => props.children[0] + props.children[1] + props.children[2]
+                            });
+                        };
+                        const component = new NesquickComponent(CustomComponent, {
+                            children: [getText1, " - ", getText2]
+                        }, true);
+                        const document = newDocument();
+                        const div = component.render(document);
+                        return { setText1, setText2, div, document };
+                    },
+                    async ACT({ setText1, setText2 }) {
+                        setText1("updated-first");
+                        setText2("updated-second");
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { div, document }) {
+                        assertHTML(document, div, `<div class="custom">updated-first - updated-second</div>`);
+                    }
+                });
+                test("should handle nested custom components with state", {
+                    ARRANGE() {
+                        const [ getText, setText ] = useState("inner-text");
+                        const InnerComponent = (props:{children:any[]}) => {
+                            return new NesquickComponent("span", {
+                                class: "inner",
+                                children: () => props.children[0]
+                            });
+                        };
+                        const OuterComponent = (props:{children:any[]}) => {
+                            return new NesquickComponent("div", {
+                                class: "outer",
+                                children: () => props.children[0]
+                            });
+                        };
+                        const component = new NesquickComponent(OuterComponent, {
+                            children: [
+                                new NesquickComponent(InnerComponent, {
+                                    children: [getText]
+                                }, true)
+                            ]
+                        }, true);
+                        const document = newDocument();
+                        const div = component.render(document);
+                        return { setText, div, document };
+                    },
+                    async ACT({ setText }) {
+                        setText("updated-inner");
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { div, document }) {
+                        assertHTML(document, div, `<div class="outer"><span class="inner">updated-inner</span></div>`);
+                    }
+                });
+                test("should update component with props and state-linked children", {
+                    ARRANGE() {
+                        const [ getText, setText ] = useState("dynamic");
+                        const CustomComponent = (props:{title:string, children:any[]}) => {
+                            return new NesquickComponent("div", {
+                                title: props.title,
+                                children: () => props.children[0] + props.children[1] + props.children[2]
+                            });
+                        };
+                        const component = new NesquickComponent(CustomComponent, {
+                            title: (() => "header") as unknown as string,
+                            children: ["Start: ", getText, " :End"]
+                        }, true);
+                        const document = newDocument();
+                        const div = component.render(document);
+                        return { setText, div, document };
+                    },
+                    async ACT({ setText }) {
+                        setText("changed");
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { div, document }) {
+                        assertHTML(document, div, `<div title="header">Start: changed :End</div>`);
+                    }
+                });
+                test("should hide state-linked child in custom component", {
+                    ARRANGE() {
+                        const [ getChild, setChild ] = useState<string|null>("visible");
+                        const CustomComponent = (props:{children:any[]}) => {
+                            return new NesquickComponent("div", {
+                                class: "custom",
+                                children: () => props.children[1]
+                            });
+                        };
+                        const component = new NesquickComponent(CustomComponent, {
+                            children: ["before", getChild, "after"]
+                        }, true);
+                        const document = newDocument();
+                        const div = component.render(document);
+                        return { setChild, div, document };
+                    },
+                    async ACT({ setChild }) {
+                        setChild(null);
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { div, document }) {
+                        assertHTML(document, div, `<div class="custom"></div>`);
+                    }
+                });
+                test("should show previously hidden state-linked child", {
+                    ARRANGE() {
+                        const [ getChild, setChild ] = useState<string|null>(null);
+                        const CustomComponent = (props:{children:any[]}) => {
+                            return new NesquickComponent("div", {
+                                class: "custom",
+                                children: () => props.children[0] + props.children[1] + props.children[2]
+                            });
+                        };
+                        const component = new NesquickComponent(CustomComponent, {
+                            children: ["before", getChild, "after"]
+                        }, true);
+                        const document = newDocument();
+                        const div = component.render(document);
+                        return { setChild, div, document };
+                    },
+                    async ACT({ setChild }) {
+                        setChild("shown");
+                        await waitRenderTick();
+                    },
+                    ASSERT(_, { div, document }) {
+                        assertHTML(document, div, `<div class="custom">beforeshownafter</div>`);
+                    }
+                });
+            });
+        });
     });
     test.describe("nq:ref", test => {
         test("should call ref with the element", {
