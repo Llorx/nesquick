@@ -11,9 +11,11 @@ function Comp(props:{children?:any, a?:string, b?:string, "b-t"?:string, "b-t-c"
         <div
             nq:ref={() => {}}
             nq:update={() => {}}
-            onClick={(_event) => {
+            onClick-cb={(_event) => {
                 props.c();
             }}
+            onClick-ref={ok}
+            onClick-prop-ref={props.c}
             a={props.a}
             b={props.b}
             b-arrow={(() => props.b)()}

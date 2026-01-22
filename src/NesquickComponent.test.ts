@@ -1149,7 +1149,7 @@ test.describe("NesquickComponent", (test, after) => {
                     ok: false
                 };
                 const component = new NesquickComponent("div", {
-                    onClick() {
+                    onClick: () => () => {
                         obj.ok = true;
                     }
                 });
@@ -1169,7 +1169,7 @@ test.describe("NesquickComponent", (test, after) => {
                     ok: false
                 };
                 const component = new NesquickComponent("div", {
-                    onClick() {
+                    onClick: () => () => {
                         obj.ok = true;
                     }
                 });
@@ -1183,6 +1183,28 @@ test.describe("NesquickComponent", (test, after) => {
             },
             ASSERT(_, { obj }) {
                 Assert.strictEqual(obj.ok, true);
+            }
+        });
+        test("should receive argument", {
+            ARRANGE() {
+                const obj = {
+                    event: null as MouseEvent|null
+                };
+                const component = new NesquickComponent("div", {
+                    onClick: () => (event:MouseEvent) => {
+                        obj.event = event;
+                    }
+                });
+                const document = newDocument();
+                const node = component.render(document);
+                return { node, obj };
+            },
+            ACT({ node }) {
+                const event = new node.ownerDocument!.defaultView!.window.MouseEvent("click", { bubbles: true });
+                node.dispatchEvent(event);
+            },
+            ASSERT(_, { node, obj }) {
+                Assert.strictEqual(obj.event instanceof node.ownerDocument!.defaultView!.window.MouseEvent, true);
             }
         });
     });

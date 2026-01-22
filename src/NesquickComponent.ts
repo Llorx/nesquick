@@ -1,4 +1,5 @@
 import { afterRender, subscriptions, Subscriptions, useRender } from "./State";
+import { isEvent } from "./util";
 
 export type Child = NesquickComponent<any>|NesquickFragment|string|boolean|number|null|undefined|ChildFunc;
 export type Children = Child|Child[];
@@ -188,22 +189,22 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                 if (k === "style") {
                     this._renderStyle(element as HTMLElement, props[k]);
                 } else if (typeof props[k] === "function") {
-                    if (k.startsWith("on")) {
-                        // TODO: Validate events
-                        (element as any)[k.toLowerCase()] = props[k];
+                    const attribute = getAttributeNs(attributes, k);
+                    if (attribute) {
+                        useRender(props[k], v => {
+                            element.setAttributeNS(attribute.namespace, attribute.name, String(v));
+                            this._onUpdated();
+                        });
+                    } else if (isEvent(k)) {
+                        useRender(props[k], v => {
+                            // TODO: Validate events
+                            (element as any)[k.toLowerCase()] = v;
+                        });
                     } else {
-                        const attribute = getAttributeNs(attributes, k);
-                        if (attribute) {
-                            useRender(props[k], v => {
-                                element.setAttributeNS(attribute.namespace, attribute.name, String(v));
-                                this._onUpdated();
-                            });
-                        } else {
-                            useRender(props[k], v => {
-                                element.setAttribute(k, String(v));
-                                this._onUpdated();
-                            });
-                        }
+                        useRender(props[k], v => {
+                            element.setAttribute(k, String(v));
+                            this._onUpdated();
+                        });
                     }
                 } else {
                     const attribute = getAttributeNs(attributes, k);
@@ -222,9 +223,11 @@ export class NesquickComponent<P extends ComponentProps = {}> {
                 if (k === "style") {
                     this._renderStyle(element as HTMLElement, props[k]);
                 } else if (typeof props[k] === "function") {
-                    if (k.startsWith("on")) {
-                        // TODO: Validate events
-                        (element as any)[k.toLowerCase()] = props[k];
+                    if (isEvent(k)) {
+                        useRender(props[k], v => {
+                            // TODO: Validate events
+                            (element as any)[k.toLowerCase()] = v;
+                        });
                     } else {
                         useRender(props[k], v => {
                             element.setAttribute(k, String(v));

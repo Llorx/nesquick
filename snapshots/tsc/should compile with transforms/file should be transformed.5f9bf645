@@ -1,4 +1,4 @@
-ÿo"	validatedT"data"Û"use strict";
+ÿo"	validatedT"data"¢"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("nesquick/jsx-runtime");
 const types_1 = require("../../lib/types");
@@ -9,9 +9,9 @@ const pepe = {
     a: (arg) => 123
 };
 function Comp(props) {
-    return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, { children: (0, jsx_runtime_1.jsxs)("div", { "nq:ref": () => { }, "nq:update": () => { }, onClick: (_event) => {
+    return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, { children: (0, jsx_runtime_1.jsxs)("div", { "nq:ref": () => { }, "nq:update": () => { }, "onClick-cb": () => (_event) => {
                 props.c();
-            }, a: () => props.a, b: () => props.b, "b-arrow": () => (() => props.b)(), "c-ref": () => props.c, "c-call": () => props.c(), expression: 123, "func-call": ok, "func-call-args": () => ok(1), "func-ref": ok, "self-call": () => (() => 123)(), "self-call-func": () => (() => ok())(), "attr-call": () => pepe.a(), "attr-call-args": () => pepe.a(1), "attr-ref": () => pepe.a, "expression-call": () => 123, "expression-call-with-props": () => props.a, "expression-call-args": (v) => 123 + v, comp: 1 + 2, "simple-ternary": 1 === 1 ? 2 : 3, "ref-ternary": 1 === 1 ? 2 : ok, "call-ternary": () => 1 === 1 ? 2 : ok(), "props-ternary": () => 1 === 1 ? 2 : props.a, "comp-call": () => 1 + ok(), "comp-call-args": () => 1 + ok(1), "comp-sub-call": () => ok(), "comp-sub-call-args": () => ok(1), "arrow-return": () => {
+            }, "onClick-ref": () => ok, "onClick-prop-ref": () => props.c, a: () => props.a, b: () => props.b, "b-arrow": () => (() => props.b)(), "c-ref": () => props.c, "c-call": () => props.c(), expression: 123, "func-call": ok, "func-call-args": () => ok(1), "func-ref": ok, "self-call": () => (() => 123)(), "self-call-func": () => (() => ok())(), "attr-call": () => pepe.a(), "attr-call-args": () => pepe.a(1), "attr-ref": () => pepe.a, "expression-call": () => 123, "expression-call-with-props": () => props.a, "expression-call-args": (v) => 123 + v, comp: 1 + 2, "simple-ternary": 1 === 1 ? 2 : 3, "ref-ternary": 1 === 1 ? 2 : ok, "call-ternary": () => 1 === 1 ? 2 : ok(), "props-ternary": () => 1 === 1 ? 2 : props.a, "comp-call": () => 1 + ok(), "comp-call-args": () => 1 + ok(1), "comp-sub-call": () => ok(), "comp-sub-call-args": () => ok(1), "arrow-return": () => {
                 return ok();
             }, func: function () {
                 return ok();

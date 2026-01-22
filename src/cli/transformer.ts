@@ -1,8 +1,10 @@
 import * as TS from "typescript";
+import { isEvent } from "../util";
 
 type Options = {
     readonly userComponent?:boolean;
     readonly isJsxAttribute?:boolean;
+    readonly isEvent?:boolean;
 };
 function getSingleIdentifier(node:TS.Node) {
     let identifier:TS.Node|null = null;
@@ -227,15 +229,16 @@ export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
                 const res = processNode(node, { userComponent });
                 node = res.node;
             } else if (TS.isJsxAttribute(node)) {
+                const propIsEvent = TS.isIdentifier(node.name) && isEvent(node.name.text);
                 node = TS.visitEachChild(node, node => {
-                    const res = visitGeneric(node, { ...options, isJsxAttribute: true });
+                    const res = visitGeneric(node, { ...options, isJsxAttribute: true, isEvent: propIsEvent});
                     hasCallExpression = hasCallExpression || res.hasCallExpression;
                     return res.node;
                 }, context);
             } else if (TS.isJsxExpression(node)) {
                 node = TS.visitEachChild(node, node => visitorExpression(node, { ...options, isJsxAttribute: false }), context);
             } else if (options.isJsxAttribute && TS.isStringLiteral(node)) {
-                const returnNode = TS.visitNode(node, node => visitorExpression(node, { ...options, isJsxAttribute: false }), TS.isExpression);
+                const returnNode = TS.visitNode(node, node => visitorExpression(node, { ...options, isJsxAttribute: false, isEvent: false }), TS.isExpression);
                 if (TS.isStringLiteral(returnNode)) {
                     node = returnNode;
                 } else {
@@ -243,12 +246,12 @@ export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
                 }
             } else if (TS.isFunctionLike(node)) {
                 node = TS.visitEachChild(node, node => {
-                    const res = visitGeneric(node, { ...options, isJsxAttribute: false });
+                    const res = visitGeneric(node, { ...options, isJsxAttribute: false, isEvent: false });
                     return res.node;
                 }, context);
             } else {
                 node = TS.visitEachChild(node, node => {
-                    const res = visitGeneric(node, { ...options, isJsxAttribute: false });
+                    const res = visitGeneric(node, { ...options, isJsxAttribute: false, isEvent: false });
                     hasCallExpression = hasCallExpression || res.hasCallExpression;
                     return res.node;
                 }, context);
@@ -273,7 +276,7 @@ export const transformer:TS.TransformerFactory<TS.SourceFile> = context => {
             }
             const res = visitGeneric(node, {});
             node = res.node;
-            if (TS.isConciseBody(node) && (options.userComponent || res.hasCallExpression)) {
+            if (TS.isConciseBody(node) && (options.userComponent || res.hasCallExpression || options.isEvent)) {
                 node = arrowify(node);
             }
             return node;
