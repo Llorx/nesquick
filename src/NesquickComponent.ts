@@ -10,9 +10,13 @@ export type FunctionComponent<P extends ComponentProps = {}> = (props:P) => Nesq
 
 export type NesquickDocument = Pick<Document, "createElement"|"createElementNS"|"createTextNode"|"createDocumentFragment"|"createComment">;
 
-type NesquickChild = {
+type NesquickChild = ({
     node:Node|null;
-} & ({
+    comment:false;
+} | {
+    node:Comment;
+    comment:true;
+}) & ({
     component:NesquickComponent|null;
     fragment:null;
 } | {
@@ -328,6 +332,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     protected _pushChild():NesquickChild {
         const nesquickChild:NesquickChild = {
             node: null,
+            comment: false,
             component: null,
             fragment: null
         };
@@ -337,6 +342,7 @@ export class NesquickComponent<P extends ComponentProps = {}> {
     protected _spliceChild(i:number):NesquickChild {
         const nesquickChild:NesquickChild = {
             node: null,
+            comment: false,
             component: null,
             fragment: null
         };
@@ -408,19 +414,40 @@ export class NesquickComponent<P extends ComponentProps = {}> {
             }
             nesquickChild.node = node;
         } else {
-            const value = child == null ? "" : String(child);
+            const value = String(child);
             if (nesquickChild.node == null || nesquickChild.component != null || nesquickChild.fragment != null) {
                 nesquickChild.component = null;
                 nesquickChild.fragment = null;
-                const node = document.createTextNode(value);
+                let node;
+                if (child == null || child === false || child === true) {
+                    node = document.createComment("");
+                    nesquickChild.comment = true;
+                } else {
+                    node = document.createTextNode(String(value));
+                    nesquickChild.comment = false;
+                }
                 if (nesquickChild.node) {
                     parent.replaceChild(node, nesquickChild.node);
                 } else {
                     parent.appendChild(node);
                 }
                 nesquickChild.node = node;
+            } else if (child == null || child === false || child === true) {
+                if (!nesquickChild.comment) {
+                    const node = document.createComment("");
+                    parent.replaceChild(node, nesquickChild.node);
+                    nesquickChild.node = node;
+                    (nesquickChild as NesquickChild).comment = true;
+                }
             } else {
-                nesquickChild.node.textContent = value;
+                if (nesquickChild.comment) {
+                    const node = document.createTextNode(String(value));
+                    parent.replaceChild(node, nesquickChild.node);
+                    nesquickChild.node = node;
+                    (nesquickChild as NesquickChild).comment = false;
+                } else {
+                    nesquickChild.node.textContent = value;
+                }
             }
         }
     }

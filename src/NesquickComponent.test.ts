@@ -288,7 +288,37 @@ test.describe("NesquickComponent", (test, after) => {
                     return component.render(document);
                 },
                 ASSERT(res, { document }) {
-                    assertHTML(document, res, "<div>test1test2</div>");
+                    assertHTML(document, res, "<div>test1<!---->test2</div>");
+                }
+            });
+            test("should not render false children", {
+                ARRANGE() {
+                    const component = new NesquickComponent("div", {
+                        children: ["test1", false, "test2"]
+                    });
+                    const document = newDocument();
+                    return { component, document };
+                },
+                ACT({ component, document }) {
+                    return component.render(document);
+                },
+                ASSERT(res, { document }) {
+                    assertHTML(document, res, "<div>test1<!---->test2</div>");
+                }
+            });
+            test("should not render true children", {
+                ARRANGE() {
+                    const component = new NesquickComponent("div", {
+                        children: ["test1", true, "test2"]
+                    });
+                    const document = newDocument();
+                    return { component, document };
+                },
+                ACT({ component, document }) {
+                    return component.render(document);
+                },
+                ASSERT(res, { document }) {
+                    assertHTML(document, res, "<div>test1<!---->test2</div>");
                 }
             });
             test("should render NesquickComponent children", {
@@ -408,7 +438,7 @@ test.describe("NesquickComponent", (test, after) => {
                             await waitRenderTick();
                         },
                         ASSERT(_, { div, document }) {
-                            assertHTML(document, div, "<div>test1test2</div>");
+                            assertHTML(document, div, "<div>test1<!---->test2</div>");
                         }
                     });
                     test("should show", {
@@ -427,6 +457,138 @@ test.describe("NesquickComponent", (test, after) => {
                         },
                         ASSERT(_, { div, document }) {
                             assertHTML(document, div, "<div>test1test2test3</div>");
+                        }
+                    });
+                    test("should hide with false", {
+                        ARRANGE() {
+                            const [ getChild, setChild ] = useState<string|false>("test");
+                            const component = new NesquickComponent("div", {
+                                children: ["test1", getChild, "test2"]
+                            });
+                            const document = newDocument();
+                            const div = component.render(document);
+                            return { setChild, div, document };
+                        },
+                        async ACT({ setChild }) {
+                            setChild(false);
+                            await waitRenderTick();
+                        },
+                        ASSERT(_, { div, document }) {
+                            assertHTML(document, div, "<div>test1<!---->test2</div>");
+                        }
+                    });
+                    test("should show from false", {
+                        ARRANGE() {
+                            const [ getChild, setChild ] = useState<string|false>(false);
+                            const component = new NesquickComponent("div", {
+                                children: ["test1", getChild, "test3"]
+                            });
+                            const document = newDocument();
+                            const div = component.render(document);
+                            return { setChild, div, document };
+                        },
+                        async ACT({ setChild }) {
+                            setChild("test2");
+                            await waitRenderTick();
+                        },
+                        ASSERT(_, { div, document }) {
+                            assertHTML(document, div, "<div>test1test2test3</div>");
+                        }
+                    });
+                    test("should hide with true", {
+                        ARRANGE() {
+                            const [ getChild, setChild ] = useState<string|true>("test");
+                            const component = new NesquickComponent("div", {
+                                children: ["test1", getChild, "test2"]
+                            });
+                            const document = newDocument();
+                            const div = component.render(document);
+                            return { setChild, div, document };
+                        },
+                        async ACT({ setChild }) {
+                            setChild(true);
+                            await waitRenderTick();
+                        },
+                        ASSERT(_, { div, document }) {
+                            assertHTML(document, div, "<div>test1<!---->test2</div>");
+                        }
+                    });
+                    test("should show from true", {
+                        ARRANGE() {
+                            const [ getChild, setChild ] = useState<string|true>(true);
+                            const component = new NesquickComponent("div", {
+                                children: ["test1", getChild, "test3"]
+                            });
+                            const document = newDocument();
+                            const div = component.render(document);
+                            return { setChild, div, document };
+                        },
+                        async ACT({ setChild }) {
+                            setChild("test2");
+                            await waitRenderTick();
+                        },
+                        ASSERT(_, { div, document }) {
+                            assertHTML(document, div, "<div>test1test2test3</div>");
+                        }
+                    });
+                    test("should keep comment when switching from null to false", {
+                        ARRANGE() {
+                            const [ getChild, setChild ] = useState<string|null|false>(null);
+                            const component = new NesquickComponent("div", {
+                                children: ["test1", getChild, "test2"]
+                            });
+                            const document = newDocument();
+                            const div = component.render(document);
+                            const commentNode = div.childNodes[1];
+                            return { setChild, div, document, commentNode };
+                        },
+                        async ACT({ setChild }) {
+                            setChild(false);
+                            await waitRenderTick();
+                        },
+                        ASSERT(_, { div, document, commentNode }) {
+                            assertHTML(document, div, "<div>test1<!---->test2</div>");
+                            Assert.strictEqual(div.childNodes[1], commentNode, "should reuse the same comment node");
+                        }
+                    });
+                    test("should keep comment when switching from false to null", {
+                        ARRANGE() {
+                            const [ getChild, setChild ] = useState<string|null|false>(false);
+                            const component = new NesquickComponent("div", {
+                                children: ["test1", getChild, "test2"]
+                            });
+                            const document = newDocument();
+                            const div = component.render(document);
+                            const commentNode = div.childNodes[1];
+                            return { setChild, div, document, commentNode };
+                        },
+                        async ACT({ setChild }) {
+                            setChild(null);
+                            await waitRenderTick();
+                        },
+                        ASSERT(_, { div, document, commentNode }) {
+                            assertHTML(document, div, "<div>test1<!---->test2</div>");
+                            Assert.strictEqual(div.childNodes[1], commentNode, "should reuse the same comment node");
+                        }
+                    });
+                    test("should keep comment when switching from null to true", {
+                        ARRANGE() {
+                            const [ getChild, setChild ] = useState<string|null|true>(null);
+                            const component = new NesquickComponent("div", {
+                                children: ["test1", getChild, "test2"]
+                            });
+                            const document = newDocument();
+                            const div = component.render(document);
+                            const commentNode = div.childNodes[1];
+                            return { setChild, div, document, commentNode };
+                        },
+                        async ACT({ setChild }) {
+                            setChild(true);
+                            await waitRenderTick();
+                        },
+                        ASSERT(_, { div, document, commentNode }) {
+                            assertHTML(document, div, "<div>test1<!---->test2</div>");
+                            Assert.strictEqual(div.childNodes[1], commentNode, "should reuse the same comment node");
                         }
                     });
                 });
@@ -516,7 +678,7 @@ test.describe("NesquickComponent", (test, after) => {
                             await waitRenderTick();
                         },
                         ASSERT(_, { div, document }) {
-                            assertHTML(document, div, "<div>test1test2</div>");
+                            assertHTML(document, div, "<div>test1<!---->test2</div>");
                         }
                     });
                     test("should show", {
@@ -624,7 +786,7 @@ test.describe("NesquickComponent", (test, after) => {
                             await waitRenderTick();
                         },
                         ASSERT(_, { div, document }) {
-                            assertHTML(document, div, "<div>test1test3</div>");
+                            assertHTML(document, div, "<div>test1<!---->test3</div>");
                         }
                     });
                     test("should show", {
@@ -850,7 +1012,7 @@ test.describe("NesquickComponent", (test, after) => {
                         await waitRenderTick();
                     },
                     ASSERT(_, { div, document }) {
-                        assertHTML(document, div, `<div class="custom"></div>`);
+                        assertHTML(document, div, `<div class="custom"><!----></div>`);
                     }
                 });
                 test("should show previously hidden state-linked child", {
