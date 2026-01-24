@@ -24,6 +24,49 @@ test.describe("NesquickComponent", (test, after) => {
         Assert.strictEqual(document.body.innerHTML, html);
     }
     test.describe("render", test => {
+        test.describe("basic rendering", test => {
+            test.describe("element types", test => {
+                test("should render div", {
+                    ARRANGE() {
+                        const component = new NesquickComponent("div", {});
+                        const document = newDocument();
+                        return { component, document };
+                    },
+                    ACT({ component, document }) {
+                        return component.render(document);
+                    },
+                    ASSERT(res, { document }) {
+                        assertHTML(document, res, "<div></div>");
+                    }
+                });
+                test("should render span", {
+                    ARRANGE() {
+                        const component = new NesquickComponent("span", {});
+                        const document = newDocument();
+                        return { component, document };
+                    },
+                    ACT({ component, document }) {
+                        return component.render(document);
+                    },
+                    ASSERT(res, { document }) {
+                        assertHTML(document, res, "<span></span>");
+                    }
+                });
+                test("should render input", {
+                    ARRANGE() {
+                        const component = new NesquickComponent("input", {});
+                        const document = newDocument();
+                        return { component, document };
+                    },
+                    ACT({ component, document }) {
+                        return component.render(document);
+                    },
+                    ASSERT(res, { document }) {
+                        assertHTML(document, res, "<input>");
+                    }
+                });
+            });
+        });
         test.describe("props", test => {
             test("should render props", {
                 ARRANGE() {
@@ -219,157 +262,102 @@ test.describe("NesquickComponent", (test, after) => {
                 });
             });
         });
-        test.describe("different types", test => {
-            test("should render div", {
-                ARRANGE() {
-                    const component = new NesquickComponent("div", {});
-                    const document = newDocument();
-                    return { component, document };
-                },
-                ACT({ component, document }) {
-                    return component.render(document);
-                },
-                ASSERT(res, { document }) {
-                    assertHTML(document, res, "<div></div>");
-                }
-            });
-            test("should render span", {
-                ARRANGE() {
-                    const component = new NesquickComponent("span", {});
-                    const document = newDocument();
-                    return { component, document };
-                },
-                ACT({ component, document }) {
-                    return component.render(document);
-                },
-                ASSERT(res, { document }) {
-                    assertHTML(document, res, "<span></span>");
-                }
-            });
-            test("should render input", {
-                ARRANGE() {
-                    const component = new NesquickComponent("input", {});
-                    const document = newDocument();
-                    return { component, document };
-                },
-                ACT({ component, document }) {
-                    return component.render(document);
-                },
-                ASSERT(res, { document }) {
-                    assertHTML(document, res, "<input>");
-                }
-            });
-        });
         test.describe("children", test => {
-            test("should render text children", {
-                ARRANGE() {
-                    const component = new NesquickComponent("div", {
-                        children: ["test1", "test2"]
-                    });
-                    const document = newDocument();
-                    return { component, document };
-                },
-                ACT({ component, document }) {
-                    return component.render(document);
-                },
-                ASSERT(res, { document }) {
-                    assertHTML(document, res, "<div>test1test2</div>");
-                }
+            test.describe("static children", test => {
+                test("should render text children", {
+                    ARRANGE() {
+                        const component = new NesquickComponent("div", {
+                            children: ["test1", "test2"]
+                        });
+                        const document = newDocument();
+                        return { component, document };
+                    },
+                    ACT({ component, document }) {
+                        return component.render(document);
+                    },
+                    ASSERT(res, { document }) {
+                        assertHTML(document, res, "<div>test1test2</div>");
+                    }
+                });
+                test("should not render null children", {
+                    ARRANGE() {
+                        const component = new NesquickComponent("div", {
+                            children: ["test1", null, "test2"]
+                        });
+                        const document = newDocument();
+                        return { component, document };
+                    },
+                    ACT({ component, document }) {
+                        return component.render(document);
+                    },
+                    ASSERT(res, { document }) {
+                        assertHTML(document, res, "<div>test1<!---->test2</div>");
+                    }
+                });
+                test("should not render false children", {
+                    ARRANGE() {
+                        const component = new NesquickComponent("div", {
+                            children: ["test1", false, "test2"]
+                        });
+                        const document = newDocument();
+                        return { component, document };
+                    },
+                    ACT({ component, document }) {
+                        return component.render(document);
+                    },
+                    ASSERT(res, { document }) {
+                        assertHTML(document, res, "<div>test1<!---->test2</div>");
+                    }
+                });
+                test("should not render true children", {
+                    ARRANGE() {
+                        const component = new NesquickComponent("div", {
+                            children: ["test1", true, "test2"]
+                        });
+                        const document = newDocument();
+                        return { component, document };
+                    },
+                    ACT({ component, document }) {
+                        return component.render(document);
+                    },
+                    ASSERT(res, { document }) {
+                        assertHTML(document, res, "<div>test1<!---->test2</div>");
+                    }
+                });
+                test("should render NesquickComponent children", {
+                    ARRANGE() {
+                        const component = new NesquickComponent("div", {
+                            children: [new NesquickComponent("span", {})]
+                        });
+                        const document = newDocument();
+                        return { component, document };
+                    },
+                    ACT({ component, document }) {
+                        return component.render(document);
+                    },
+                    ASSERT(res, { document }) {
+                        assertHTML(document, res, "<div><span></span></div>");
+                    }
+                });
+                test("should render children function without fragment", {
+                    ARRANGE() {
+                        const component = new NesquickComponent("div", {
+                            children: () => ["test1"]
+                        });
+                        const document = newDocument();
+                        return { component, document };
+                    },
+                    ACT({ component, document }) {
+                        return component.render(document);
+                    },
+                    ASSERT(res, { document }) {
+                        assertHTML(document, res, "<div>test1</div>");
+                    }
+                });
             });
-            test("should not render null children", {
-                ARRANGE() {
-                    const component = new NesquickComponent("div", {
-                        children: ["test1", null, "test2"]
-                    });
-                    const document = newDocument();
-                    return { component, document };
-                },
-                ACT({ component, document }) {
-                    return component.render(document);
-                },
-                ASSERT(res, { document }) {
-                    assertHTML(document, res, "<div>test1<!---->test2</div>");
-                }
-            });
-            test("should not render false children", {
-                ARRANGE() {
-                    const component = new NesquickComponent("div", {
-                        children: ["test1", false, "test2"]
-                    });
-                    const document = newDocument();
-                    return { component, document };
-                },
-                ACT({ component, document }) {
-                    return component.render(document);
-                },
-                ASSERT(res, { document }) {
-                    assertHTML(document, res, "<div>test1<!---->test2</div>");
-                }
-            });
-            test("should not render true children", {
-                ARRANGE() {
-                    const component = new NesquickComponent("div", {
-                        children: ["test1", true, "test2"]
-                    });
-                    const document = newDocument();
-                    return { component, document };
-                },
-                ACT({ component, document }) {
-                    return component.render(document);
-                },
-                ASSERT(res, { document }) {
-                    assertHTML(document, res, "<div>test1<!---->test2</div>");
-                }
-            });
-            test("should render NesquickComponent children", {
-                ARRANGE() {
-                    const component = new NesquickComponent("div", {
-                        children: [new NesquickComponent("span", {})]
-                    });
-                    const document = newDocument();
-                    return { component, document };
-                },
-                ACT({ component, document }) {
-                    return component.render(document);
-                },
-                ASSERT(res, { document }) {
-                    assertHTML(document, res, "<div><span></span></div>");
-                }
-            });
-            test("should render children function without fragment", {
-                ARRANGE() {
-                    const component = new NesquickComponent("div", {
-                        children: () => ["test1"]
-                    });
-                    const document = newDocument();
-                    return { component, document };
-                },
-                ACT({ component, document }) {
-                    return component.render(document);
-                },
-                ASSERT(res, { document }) {
-                    assertHTML(document, res, "<div>test1</div>");
-                }
-            });
-            test.describe("state", test => {
-                test.describe("from single string", test => {
-                    test("should render", {
-                        ARRANGE() {
-                            const [ getChild ] = useState("test2");
-                            const component = new NesquickComponent("div", {
-                                children: ["test1", getChild, "test3"]
-                            });
-                            const document = newDocument();
-                            return { component, document };
-                        },
-                        ACT({ component, document }) {
-                            return component.render(document);
-                        },
-                        ASSERT(res, { document }) {
-                            assertHTML(document, res, "<div>test1test2test3</div>");
-                        }
-                    });
-                    test("should update to single string", {
+            test.describe("state updates", test => {
+                test.describe("type transitions", test => {
+                    test("should update string to string", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState("test");
                             const component = new NesquickComponent("div", {
@@ -387,7 +375,7 @@ test.describe("NesquickComponent", (test, after) => {
                             assertHTML(document, div, "<div>test1test2test3</div>");
                         }
                     });
-                    test("should update to array of strings", {
+                    test("should update string to array", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState<string|string[]>("test");
                             const component = new NesquickComponent("div", {
@@ -405,7 +393,7 @@ test.describe("NesquickComponent", (test, after) => {
                             assertHTML(document, div, "<div>test1test2test22<!--Fragment-->test3</div>");
                         }
                     });
-                    test("should update to NesquickComponent", {
+                    test("should update string to component", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState<NesquickComponent|string>("test2");
                             const component = new NesquickComponent("div", {
@@ -546,9 +534,13 @@ test.describe("NesquickComponent", (test, after) => {
                             setChild(false);
                             await waitRenderTick();
                         },
-                        ASSERT(_, { div, document, commentNode }) {
-                            assertHTML(document, div, "<div>test1<!---->test2</div>");
-                            Assert.strictEqual(div.childNodes[1], commentNode, "should reuse the same comment node");
+                        ASSERTS: {
+                            "should render comment"(_, { div, document }) {
+                                assertHTML(document, div, "<div>test1<!---->test2</div>");
+                            },
+                            "should reuse the same comment node"(_, { div, commentNode }) {
+                                Assert.strictEqual(div.childNodes[1], commentNode);
+                            }
                         }
                     });
                     test("should keep comment when switching from false to null", {
@@ -566,9 +558,13 @@ test.describe("NesquickComponent", (test, after) => {
                             setChild(null);
                             await waitRenderTick();
                         },
-                        ASSERT(_, { div, document, commentNode }) {
-                            assertHTML(document, div, "<div>test1<!---->test2</div>");
-                            Assert.strictEqual(div.childNodes[1], commentNode, "should reuse the same comment node");
+                        ASSERTS: {
+                            "should render comment"(_, { div, document }) {
+                                assertHTML(document, div, "<div>test1<!---->test2</div>");
+                            },
+                            "should reuse the same comment node"(_, { div, commentNode }) {
+                                Assert.strictEqual(div.childNodes[1], commentNode);
+                            }
                         }
                     });
                     test("should keep comment when switching from null to true", {
@@ -586,13 +582,17 @@ test.describe("NesquickComponent", (test, after) => {
                             setChild(true);
                             await waitRenderTick();
                         },
-                        ASSERT(_, { div, document, commentNode }) {
-                            assertHTML(document, div, "<div>test1<!---->test2</div>");
-                            Assert.strictEqual(div.childNodes[1], commentNode, "should reuse the same comment node");
+                        ASSERTS: {
+                            "should render comment"(_, { div, document }) {
+                                assertHTML(document, div, "<div>test1<!---->test2</div>");
+                            },
+                            "should reuse the same comment node"(_, { div, commentNode }) {
+                                Assert.strictEqual(div.childNodes[1], commentNode);
+                            }
                         }
                     });
                 });
-                test.describe("from array of strings", test => {
+                test.describe("array of strings", test => {
                     test("should render", {
                         ARRANGE() {
                             const [ getChild ] = useState(["test2", "test22"]);
@@ -700,7 +700,7 @@ test.describe("NesquickComponent", (test, after) => {
                         }
                     });
                 });
-                test.describe("from NesquickComponent", test => {
+                test.describe("NesquickComponent", test => {
                     test("should render", {
                         ARRANGE() {
                             const [ getChild ] = useState(new NesquickComponent("span", {}));
@@ -753,7 +753,7 @@ test.describe("NesquickComponent", (test, after) => {
                             assertHTML(document, div, "<div>test1test2test22<!--Fragment-->test3</div>");
                         }
                     });
-                    test("should update to NesquickComponent", {
+                    test("should update to another NesquickComponent", {
                         ARRANGE() {
                             const [ getChild, setChild ] = useState(new NesquickComponent("span", {}));
                             const component = new NesquickComponent("div", {
